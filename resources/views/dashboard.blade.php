@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <title>Starter | Hando - Responsive Admin Dashboard Template</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="A fully featured admin theme which can be used to build CRM, CMS, etc."/>
+        <meta name="author" content="Zoyothemes"/>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+        <!-- App favicon -->
+        <link rel="shortcut icon" href="{{ asset('assets/images/favicon.ico') }}">
+
+        <!-- App css -->
+        <link href="{{ asset('assets/css/app.min.css') }}" rel="stylesheet" type="text/css" id="app-style" />
+
+        <!-- Icons -->
+        <link href="{{ asset('assets/css/icons.min.css') }}" rel="stylesheet" type="text/css" />
+
+        <script src="{{ asset('assets/js/head.js') }}"></script>
+    </head>
+
+    <body data-menu-color="light" data-sidebar="default">
+        <!-- Begin page -->
+        <div id="app-layout">
+
+            <!-- Topbar Start -->
+            <div class="topbar-custom">
+                <div class="container-fluid">
+                    <div class="d-flex justify-content-between">
+                        <ul class="list-unstyled topnav-menu mb-0 d-flex align-items-center">
+                            <li>
+                                <button class="button-toggle-menu nav-link">
+                                    <i data-feather="menu" class="noti-icon"></i>
+                                </button>
+                            </li>
+                            <li class="d-none d-lg-block">
+                                <h5 class="mb-0">Good Morning, Alex</h5>
+                            </li>
+                        </ul>
+
+                        <ul class="list-unstyled topnav-menu mb-0 d-flex align-items-center">
+                            <li class="d-none d-lg-block">
+                                <form class="app-search d-none d-md-block me-auto">
+                                    <div class="position-relative topbar-search">
+                                        <input type="text" class="form-control ps-4" placeholder="Search..." />
+                                        <i class="mdi mdi-magnify fs-16 position-absolute text-muted top-50 translate-middle-y ms-2"></i>
+                                    </div>
+                                </form>
+                            </li>
+
+                            <li class="d-none d-sm-flex">
+                                <button type="button" class="btn nav-link" data-toggle="fullscreen">
+                                    <i data-feather="maximize" class="align-middle fullscreen noti-icon"></i>
+                                </button>
+                            </li>
+
+                            <li class="d-none d-sm-flex">
+                                <button type="button" class="btn nav-link" id="light-dark-mode">
+                                    <i data-feather="moon" class="align-middle dark-mode"></i>
+                                    <i data-feather="sun" class="align-middle light-mode"></i>
+                                </button>
+                            </li>
+
+                            <li class="dropdown notification-list topbar-dropdown">
+                                <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button"
+                                   aria-haspopup="false" aria-expanded="false">
+                                    <i data-feather="bell" class="noti-icon"></i>
+                                    <span class="badge bg-danger rounded-circle noti-icon-badge">9</span>
+                                </a>
+                                <div class="dropdown-menu dropdown-menu-end dropdown-lg">
+                                    <!-- Notifikasi Title -->
+                                    <div class="dropdown-item noti-title">
+                                        <h5 class="m-0">
+                                            <span class="float-end"><a href="" class="text-dark"><small>Clear All</small></a></span>
+                                            Notification
+                                        </h5>
+                                    </div>
+                                    <!-- Notifikasi List -->
+                                    <div class="noti-scroll" data-simplebar>
+                                        <a href="javascript:void(0);" class="dropdown-item notify-item text-muted link-primary active">
+                                            <div class="notify-icon">
+                                                <img src="{{ asset('assets/images/users/user-12.jpg') }}" class="img-fluid rounded-circle" alt="" />
+                                            </div>
+                                            <div class="d-flex align-items-center justify-content-between">
+                                                <p class="notify-details">Carl Steadham</p>
+                                                <small class="text-muted">5 min ago</small>
+                                            </div>
+                                            <p class="mb-0 user-msg">
+                                                <small class="fs-14">Completed <span class="text-reset">Improve workflow in Figma</span></small>
+                                            </p>
+                                        </a>
+                                        <!-- Notifikasi lainnya... -->
+                                    </div>
+                                    <!-- Link view all -->
+                                    <a href="javascript:void(0);" class="dropdown-item text-center text-primary notify-item notify-all">
+                                        View all <i class="fe-arrow-right"></i>
+                                    </a>
+                                </div>
+                            </li>
+
+                            <li class="dropdown notification-list topbar-dropdown">
+                                <a class="nav-link dropdown-toggle nav-user me-0" data-bs-toggle="dropdown" href="#"
+                                   role="button" aria-haspopup="false" aria-expanded="false">
+                                    <img src="{{ asset('assets/images/users/user-13.jpg') }}" alt="user-image" class="rounded-circle" />
+                                    <span class="pro-user-name ms-1">Alex <i class="mdi mdi-chevron-down"></i></span>
+                                </a>
+                                <div class="dropdown-menu dropdown-menu-end profile-dropdown">
+                                    <div class="dropdown-header noti-title">
+                                        <h6 class="text-overflow m-0">Welcome !</h6>
+                                    </div>
+                                    <a href="pages-profile.html" class="dropdown-item notify-item">
+                                        <i class="mdi mdi-account-circle-outline fs-16 align-middle"></i>
+                                        <span>My Account</span>
+                                    </a>
+                                    <a href="auth-lock-screen.html" class="dropdown-item notify-item">
+                                        <i class="mdi mdi-lock-outline fs-16 align-middle"></i>
+                                        <span>Lock Screen</span>
+                                    </a>
+                                    <div class="dropdown-divider"></div>
+                                    <a href="auth-logout.html" class="dropdown-item notify-item">
+                                        <i class="mdi mdi-location-exit fs-16 align-middle"></i>
+                                        <span>Logout</span>
+                                    </a>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <!-- End Topbar -->
+
+            <!-- Left Sidebar Start -->
+            <div class="app-sidebar-menu">
+                <div class="h-100" data-simplebar>
+                    <!-- Sidemenu -->
+                    <div id="sidebar-menu">
+                        <div class="logo-box">
+                            <a href="index.html" class="logo logo-light">
+                                <span class="logo-sm">
+                                    <img src="{{ asset('assets/images/logo-sm.png') }}" alt="" height="22">
+                                </span>
+                                <span class="logo-lg">
+                                    <img src="{{ asset('assets/images/logo-light.png') }}" alt="" height="24">
+                                </span>
+                            </a>
+                            <a href="index.html" class="logo logo-dark">
+                                <span class="logo-sm">
+                                    <img src="{{ asset('assets/images/logo-sm.png') }}" alt="" height="22">
+                                </span>
+                                <span class="logo-lg">
+                                    <img src="{{ asset('assets/images/logo-dark.png') }}" alt="" height="24">
+                                </span>
+                            </a>
+                        </div>
+
+                        <ul id="side-menu">
+                            <li class="menu-title">Menu</li>
+                            <li>
+                                <a href="#sidebarDashboards" data-bs-toggle="collapse">
+                                    <i data-feather="home"></i>
+                                    <span> Dashboard </span>
+                                    <span class="menu-arrow"></span>
+                                </a>
+                                <div class="collapse" id="sidebarDashboards">
+                                    <ul class="nav-second-level">
+                                        <li><a href="index.html" class="tp-link">CRM</a></li>
+                                        <li><a href="analytics.html" class="tp-link">Analytics</a></li>
+                                        <li><a href="ecommerce.html" class="tp-link">eCommerce</a></li>
+                                        <li><a href="projects.html" class="tp-link">Projects</a></li>
+                                        <li><a href="hrm.html" class="tp-link">HRM</a></li>
+                                        <li><a href="jobs.html" class="tp-link">Jobs</a></li>
+                                    </ul>
+                                </div>
+                            </li>
+                            <li class="menu-title">Akademik</li>
+                            <!-- Menu lain... -->
+                        </ul>
+                    </div>
+                    <!-- End Sidebar -->
+                    <div class="clearfix"></div>
+                </div>
+            </div>
+            <!-- Left Sidebar End -->
+
+            <!-- Start Page Content here -->
+            <div class="content-page">
+                <div class="content">
+                    <!-- Start Content-->
+                    <div class="container-fluid">
+                        <div class="py-3 d-flex align-items-sm-center flex-sm-row flex-column">
+                            <div class="flex-grow-1">
+                                <h4 class="fs-18 fw-semibold m-0">Dashboard</h4>
+                            </div>
+                            <div class="text-end">
+                                <ol class="breadcrumb m-0 py-0">
+                                    <li class="breadcrumb-item"><a href="javascript: void(0);">Pages</a></li>
+                                    <li class="breadcrumb-item active">Dashboard</li>
+                                </ol>
+                            </div>
+                        </div>
+
+                        <!-- Kartu Metrik -->
+                        <div class="row">
+                            <!-- Kartu Total Tabungan -->
+                            <div class="col-md-6 col-xl-3">
+                                <div class="card overflow-hidden">
+                                    <div class="card-body">
+                                        <div class="widget-first">
+                                            <div class="d-flex align-items-center mb-3">
+                                                <div class="rounded-2 bg-white p-2 me-3 shadow-sm border">
+                                                    <!-- SVG Icon Total Tabungan -->
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 14 14">
+                                                        <path fill="#287F71" fill-rule="evenodd" d="M13.463 9.692C13.463 12.664 10.77 14 7 14S.537 12.664.537 9.713c0-3.231 1.616-4.868 4.847-6.505L4.24 1.077A.7.7 0 0 1 4.843 0H9.41a.7.7 0 0 1 .603 1.023L8.616 3.208c3.23 1.615 4.847 3.252 4.847 6.484M7.625 4.887a.625.625 0 1 0-1.25 0v.627a1.74 1.74 0 0 0-.298 3.44l1.473.322a.625.625 0 0 1-.133 1.236h-.834a.625.625 0 0 1-.59-.416a.625.625 0 1 0-1.178.416a1.877 1.877 0 0 0 1.56 1.239v.636a.625.625 0 1 0 1.25 0v-.636a1.876 1.876 0 0 0 .192-3.696l-1.473-.322a.49.49 0 0 1 .105-.97h.968a.622.622 0 0 1 .59.416a.625.625 0 0 0 1.178-.417a1.874 1.874 0 0 0-1.56-1.238z" clip-rule="evenodd"/>
+                                                    </svg>
+                                                </div>
+                                                <div>
+                                                    <p class="mb-0 text-dark fs-16">Total Tabungan</p>
+                                                </div>
+                                            </div>
+                                            <div class="d-flex align-items-center mb-3">
+                                                <h3 class="mb-0 fs-26 text-dark me-2 me-3">{{ number_format($totalSimpanan, 2) }}</h3>
+                                                <span class="badge badge-custom-second text-success bg-success-subtle fw-medium rounded-4 fs-14 me-2">+ 12.5%</span> 
+                                            </div>
+                                            <p class="text-muted fs-14 mb-2">Data obtained for the last 7 days from overall orders.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Kartu Total Cicilan -->
+                            <div class="col-md-6 col-xl-3">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <div class="widget-first">
+                                            <div class="d-flex align-items-center mb-3">
+                                                <div class="rounded-2 bg-white p-2 me-3 shadow-sm border">
+                                                    <!-- SVG Icon Total Cicilan -->
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 640 512">
+                                                        <path fill="#963b68" d="M96 224c35.3 0 64-28.7 64-64s-28.7-64-64-64s-64 28.7-64 64s28.7 64 64 64m448 0c35.3 0 64-28.7 64-64s-28.7-64-64-64s-64 28.7-64 64s28.7 64 64 64m32 32h-64c-17.6 0-33.5 7.1-45.1 18.6c40.3 22.1 68.9 62 75.1 109.4h66c17.7 0 32-14.3 32-32v-32c0-35.3-28.7-64-64-64m-256 0c61.9 0 112-50.1 112-112S381.9 32 320 32S208 82.1 208 144s50.1 112 112 112m76.8 32h-8.3c-20.8 10-43.9 16-68.5 16s-47.6-6-68.5-16h-8.3C179.6 288 128 339.6 128 403.2V432c0 26.5 21.5 48 48 48h288c26.5 0 48-21.5 48-48v-28.8c0-63.6-51.6-115.2-115.2-115.2m-223.7-13.4C161.5 263.1 145.6 256 128 256H64c-35.3 0-64 28.7-64 64v32c0 17.7 14.3 32 32 32h65.9c6.3-47.4 34.9-87.3 75.2-109.4"/>
+                                                    </svg>
+                                                </div>
+                                                <div>
+                                                    <p class="mb-0 text-dark fs-16">Total Cicilan</p>
+                                                </div>
+                                            </div>
+                                            <div class="d-flex align-items-center mb-3">
+                                                <h3 class="mb-0 fs-26 text-dark me-2 me-3">{{ number_format($totalCicilan, 2) }}</h3>
+                                                <span class="badge badge-custom-second text-success bg-success-subtle fw-medium rounded-4 fs-14 me-2">+ 12.5%</span> 
+                                            </div>
+                                            <p class="text-muted fs-14 mb-2">Data obtained for the last 7 days from monthly orders.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Kartu Total Pendapatan -->
+                            <div class="col-md-6 col-xl-3">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <div class="widget-first">
+                                            <div class="d-flex align-items-center mb-3">
+                                                <div class="rounded-2 bg-white p-2 me-3 shadow-sm border">
+                                                    <!-- SVG Icon Pendapatan -->
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24">
+                                                        <path fill="#01D4FF" d="M7 20V8.975q0-.825.6-1.4T9.025 7H20q.825 0 1.413.587T22 9v8l-5 5H9q-.825 0-1.412-.587T7 20M2.025 6.25q-.15-.825.325-1.487t1.3-.813L14.5 2.025q.825-.15 1.488.325t.812 1.3L17.05 5H9Q7.35 5 6.175 6.175T5 9v9.55q-.4-.225-.687-.6t-.363-.85zM20 16h-4v4z"/>
+                                                    </svg>
+                                                </div>
+                                                <div>
+                                                    <p class="mb-0 text-dark fs-16">Pendapatan</p>
+                                                </div>
+                                            </div>
+                                            <div class="d-flex align-items-center mb-3">
+                                                <h3 class="mb-0 fs-26 text-dark me-2 me-3">${{ number_format($totalPendapatan, 2) }}</h3>
+                                                <span class="badge badge-custom-second text-success bg-success-subtle fw-medium rounded-4 fs-13 me-2">+ 12.5%</span> 
+                                            </div>
+                                            <p class="text-muted fs-14 mb-2">Total pendapatan (8% dari simpanan per siswa).</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Kartu Total Siswa -->
+                            <div class="col-md-6 col-xl-3">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <div class="widget-first">
+                                            <div class="d-flex align-items-center mb-3">
+                                                <div class="rounded-2 bg-white p-2 me-3 shadow-sm border">
+                                                    <!-- SVG Icon Total Siswa -->
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24">
+                                                        <path fill="#f59440" d="M5.574 4.691c-.833.692-1.052 1.862-1.491 4.203l-.75 4c-.617 3.292-.926 4.938-.026 6.022C4.207 20 5.88 20 9.23 20h5.54c3.35 0 5.025 0 5.924-1.084c.9-1.084.591-2.73-.026-6.022l-.75-4c-.439-2.34-.658-3.511-1.491-4.203C17.593 4 16.403 4 14.02 4H9.98c-2.382 0-3.572 0-4.406.691"/>
+                                                        <path fill="#988D4D" d="M12 9.25a2.251 2.251 0 0 1-2.122-1.5a.75.75 0 1 0-1.414.5a3.751 3.751 0 0 0 7.073 0a.75.75 0 1 0-1.414-.5A2.251 2.251 0 0 1 12 9.25"/>
+                                                    </svg>
+                                                </div>
+                                                <div>
+                                                    <p class="mb-0 text-dark fs-16">Total Siswa</p>
+                                                </div>
+                                            </div>
+                                            <div class="d-flex align-items-center mb-3">
+                                                <h3 class="mb-0 fs-26 text-dark me-2 me-3">{{ $totalSiswa }} Items</h3>
+                                                <span class="badge badge-custom-second text-success bg-success-subtle fw-medium rounded-4 fs-13 me-2">+ 12.5%</span>
+                                            </div>
+                                            <p class="text-muted fs-14 mb-2">Data obtained from total student records.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- End Kartu Metrik -->
+
+                        <!-- Data Table & Filter/Search -->
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="card overflow-hidden">
+                                    <div class="card-header">
+                                        <div class="d-flex align-items-center">
+                                            <h5 class="card-title mb-0">Data Tabungan</h5>
+                                            <!-- Form Filter dan Search -->
+                                            <form action="{{ route('dashboard') }}" method="GET" class="ms-auto d-flex align-items-center gap-2">
+                                                <!-- Filter Kelas -->
+                                                <select name="kelas" class="form-select form-select-sm">
+                                                    <option value="">Show All Kelas</option>
+                                                    <option value="3A" {{ request('kelas') == '3A' ? 'selected' : '' }}>3A</option>
+                                                    <option value="4A" {{ request('kelas') == '4A' ? 'selected' : '' }}>4A</option>
+                                                    <!-- Tambahkan opsi kelas lain sesuai kebutuhan -->
+                                                </select>
+                                                <!-- Search: Nama Siswa / Nomor Tabungan -->
+                                                <input type="text" name="search" class="form-control form-control-sm" placeholder="Search..." value="{{ request('search') }}">
+                                                <button type="submit" class="btn btn-sm btn-primary">Filter</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                    <div class="card-body p-0">
+                                        <div class="table-responsive">
+                                            <table class="table table-traffic mb-0">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Nomor Tabungan</th>
+                                                        <th>Nama</th>
+                                                        <th>Kelas</th>
+                                                        <th>Total Tabungan</th>
+                                                        <th>Total Cicilan</th>
+                                                        <th>Total Keseluruhan</th>
+                                                        <th>Action</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @forelse ($transaksis as $transaksi)
+                                                        <tr>
+                                                            <td>
+                                                                <a href="javascript:void(0);" class="text-dark">
+                                                                    {{ $transaksi->nomor_tabungan ?? '-' }}
+                                                                </a>
+                                                            </td>
+                                                            <td>
+                                                                <p class="mb-0 fw-medium fs-14">
+                                                                    {{ $transaksi->nama ?? '-' }}
+                                                                </p>
+                                                            </td>
+                                                            <td>
+                                                                <p class="mb-0 text-muted">
+                                                                    {{ $transaksi->kelas ?? '-' }}
+                                                                </p>
+                                                            </td>
+                                                            <td>
+                                                                <p class="mb-0 text-muted">
+                                                                    {{ number_format($transaksi->total_tabungan, 2) }}
+                                                                </p>
+                                                            </td>
+                                                            <td>
+                                                                <p class="mb-0 text-muted">
+                                                                    {{ number_format($transaksi->total_cicilan, 2) }}
+                                                                </p>
+                                                            </td>
+                                                            <td>
+                                                                <p class="mb-0 text-muted">
+                                                                    {{ number_format($transaksi->total_keseluruhan, 2) }}
+                                                                </p>
+                                                            </td>
+                                                            <td>
+                                                                <a href="{{ route('transaksi.edit', ['transaksi' => $transaksi->id]) }}" class="btn btn-icon btn-sm bg-primary-subtle me-1" data-bs-toggle="tooltip" data-bs-original-title="Edit">
+                                                                    <i class="mdi mdi-pencil-outline fs-14 text-primary"></i>
+                                                                </a>
+                                                                <form action="{{ route('transaksi.destroy', ['transaksi' => $transaksi->id]) }}" method="POST" class="d-inline">
+                                                                    @csrf
+                                                                    @method('DELETE')
+                                                                    <button type="submit" class="btn btn-icon btn-sm bg-danger-subtle" data-bs-toggle="tooltip" data-bs-original-title="Delete">
+                                                                        <i class="mdi mdi-delete fs-14 text-danger"></i>
+                                                                    </button>
+                                                                </form>
+                                                            </td>
+                                                        </tr>
+                                                    @empty
+                                                        <tr>
+                                                            <td colspan="7" class="text-center">Tidak ada data tabungan.</td>
+                                                        </tr>
+                                                    @endforelse
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    <div class="card-footer py-0 border-top">
+                                        <div class="row align-items-center">
+                                            <div class="col-sm">
+                                                <div class="text-block text-center text-sm-start">
+                                                    @if ($transaksis->count() > 0)
+                                                        <span class="fw-medium">
+                                                            Showing {{ $transaksis->count() }} of {{ $transaksis->total() }}
+                                                        </span>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                            <div class="col-sm-auto mt-3 mt-sm-0">
+                                                {{ $transaksis->links('pagination::bootstrap-4') }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- End Data Tabungan -->
+                    </div> <!-- container-fluid -->
+                    <!-- End Content-->
+
+                    <!-- Footer Start -->
+                    <footer class="footer">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col fs-13 text-muted text-center">
+                                    &copy; <script>document.write(new Date().getFullYear())</script> - Made with 
+                                    <span class="mdi mdi-heart text-danger"></span> by 
+                                    <a href="#!" class="text-reset fw-semibold">Zoyothemes</a>
+                                </div>
+                            </div>
+                        </div>
+                    </footer>
+                    <!-- End Footer -->
+                </div>
+                <!-- End Page Content -->
+            </div>
+        </div>
+        <!-- END wrapper -->
+
+        <!-- Vendor Scripts -->
+        <script src="{{ asset('assets/libs/jquery/jquery.min.js') }}"></script>
+        <script src="{{ asset('assets/libs/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+        <script src="{{ asset('assets/libs/simplebar/simplebar.min.js') }}"></script>
+        <script src="{{ asset('assets/libs/node-waves/waves.min.js') }}"></script>
+        <script src="{{ asset('assets/libs/waypoints/lib/jquery.waypoints.min.js') }}"></script>
+        <script src="{{ asset('assets/libs/jquery.counterup/jquery.counterup.min.js') }}"></script>
+        <script src="{{ asset('assets/libs/feather-icons/feather.min.js') }}"></script>
+
+        <!-- App Scripts -->
+        <script src="{{ asset('assets/js/app.js') }}"></script>
+    </body>
+</html>
