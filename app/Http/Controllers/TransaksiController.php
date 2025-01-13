@@ -15,8 +15,13 @@ class TransaksiController extends Controller
     public function index()
     {
         // Ambil data transaksi beserta relasi bukuTabungan, siswa, dan kelas
-        $transaksis = Transaksi::with(['bukuTabungan.siswa.kelas'])->get();
-        return view('transaksi.index', compact('transaksis'));
+        // Ambil data transaksi beserta relasi bukuTabungan, siswa, dan kelas, dengan pagination
+    $transaksis = Transaksi::with(['bukuTabungan.siswa.kelas'])->paginate(10);
+
+    // Kirim data transaksi ke view
+    return view('transaksi.index', compact('transaksis'));
+
+        
     }
 
     /**
@@ -33,13 +38,17 @@ class TransaksiController extends Controller
      * Mengambil data Buku Tabungan berdasarkan Kelas (AJAX).
      */
     public function getBukuTabunganByKelas($kelasId)
-    {
-        $bukuTabungans = BukuTabungan::whereHas('siswa', function ($query) use ($kelasId) {
-            $query->where('kelas_id', $kelasId);
-        })->with('siswa')->get();
+{
+    $bukuTabungans = BukuTabungan::whereHas('siswa', function ($query) use ($kelasId) {
+        $query->where('kelas_id', $kelasId);
+    })->with('siswa')->get();
 
-        return response()->json($bukuTabungans);
-    }
+    // Pastikan selalu mengembalikan array, meskipun kosong
+    return response()->json($bukuTabungans);
+}
+
+
+
 
     /**
      * Menyimpan transaksi baru ke database.

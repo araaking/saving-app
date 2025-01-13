@@ -8,10 +8,29 @@ use Illuminate\Http\Request;
 
 class SiswaController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $siswas = Siswa::with('kelas')->get();
-        return view('siswa.index', compact('siswas'));
+        // Mulai query dengan eager loading relasi 'kelas'
+        $query = Siswa::with('kelas');
+
+        // Jika terdapat parameter pencarian nama, tambahkan kondisi where
+        if ($request->filled('search')) {
+            $query->where('nama', 'like', '%' . $request->search . '%');
+        }
+
+        // Jika terdapat parameter filter kelas (berdasarkan nama kelas), tambahkan kondisi whereHas
+        if ($request->filled('kelas')) {
+            $query->whereHas('kelas', function ($q) use ($request) {
+                $q->where('nama', $request->kelas);
+            });
+        }
+
+        $siswas = $query->get();
+
+        // Ambil semua data kelas untuk dropdown filter
+        $allKelas = Kelas::all();
+
+        return view('siswa.index', compact('siswas', 'allKelas'));
     }
 
     public function create()
@@ -23,7 +42,7 @@ class SiswaController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'nama' => 'required|string|max:255',
+            'nama'     => 'required|string|max:255',
             'kelas_id' => 'required|exists:kelas,id',
         ]);
 
@@ -42,7 +61,7 @@ class SiswaController extends Controller
     public function update(Request $request, $id)
     {
         $request->validate([
-            'nama' => 'required|string|max:255',
+            'nama'     => 'required|string|max:255',
             'kelas_id' => 'required|exists:kelas,id',
         ]);
 

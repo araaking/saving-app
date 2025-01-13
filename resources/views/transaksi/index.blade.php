@@ -1,52 +1,94 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Daftar Transaksi</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body>
-    <div class="container">
-        <h1>Daftar Transaksi</h1>
-        <a href="/transaksi/create" class="btn btn-primary mb-3">Tambah Transaksi</a>
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Buku Tabungan</th>
-                    <th>Nama Siswa</th> <!-- Kolom baru: Nama Siswa -->
-                    <th>Kelas</th> <!-- Kolom baru: Kelas -->
-                    <th>Jenis</th>
-                    <th>Jumlah</th>
-                    <th>Tanggal</th>
-                    <th>Keterangan</th>
-                    <th>Aksi</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach ($transaksis as $transaksi)
-                <tr>
-                    <td>{{ $transaksi->id }}</td>
-                    <td>{{ $transaksi->bukuTabungan->nomor_urut }}</td>
-                    <td>{{ $transaksi->bukuTabungan->siswa->nama }}</td> <!-- Nama Siswa -->
-                    <td>{{ $transaksi->bukuTabungan->siswa->kelas->nama }}</td> <!-- Kelas -->
-                    <td>{{ ucfirst($transaksi->jenis) }}</td>
-                    <td>{{ number_format($transaksi->jumlah, 2) }}</td>
-                    <td>{{ $transaksi->tanggal->format('d/m/Y H:i:s') }}</td> <!-- Format tanggal -->
-                    <td>{{ $transaksi->keterangan }}</td>
-                    <td>
-                        <a href="/transaksi/{{ $transaksi->id }}/edit" class="btn btn-warning">Edit</a>
-                        <form action="/transaksi/{{ $transaksi->id }}" method="POST" style="display:inline;">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="btn btn-danger">Hapus</button>
-                        </form>
-                    </td>
-                </tr>
-                @endforeach
-            </tbody>
-        </table>
+@extends('layouts.layout')
+
+@section('title', 'Daftar Transaksi')
+
+@section('content')
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+                
+                </div>
+            <div class="card overflow-hidden">
+                <div class="card-header">
+                    <div class="d-flex align-items-center">
+                        <h5 class="card-title mb-0">Daftar Transaksi</h5>
+                        <a href="{{ route('transaksi.create') }}" class="btn btn-sm btn-primary ms-auto">Tambah Transaksi</a>
+                    </div>
+                </div>
+
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-striped mb-0">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Buku Tabungan</th>
+                                    <th>Nama Siswa</th>
+                                    <th>Kelas</th>
+                                    <th>Jenis</th>
+                                    <th>Jumlah</th>
+                                    <th>Tanggal</th>
+                                    <th>Keterangan</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse ($transaksis as $transaksi)
+                                <tr>
+                                    <td>{{ $transaksi->id }}</td>
+                                    <td>{{ $transaksi->bukuTabungan->nomor_urut }}</td>
+                                    <td>{{ $transaksi->bukuTabungan->siswa->nama }}</td>
+                                    <td>{{ $transaksi->bukuTabungan->siswa->kelas->nama }}</td>
+                                    <td>{{ ucfirst($transaksi->jenis) }}</td>
+                                    <td>{{ number_format($transaksi->jumlah, 0, ',', '.') }}</td>
+                                    <td>{{ $transaksi->tanggal->format('d/m/Y H:i:s') }}</td>
+                                    <td>{{ $transaksi->keterangan }}</td>
+                                    <td>
+                                        <a href="{{ route('transaksi.edit', $transaksi->id) }}" 
+                                           class="btn btn-icon btn-sm bg-primary-subtle me-1" 
+                                           data-bs-toggle="tooltip" title="Edit">
+                                            <i class="mdi mdi-pencil-outline fs-14 text-primary"></i>
+                                        </a>
+                                        <form action="{{ route('transaksi.destroy', $transaksi->id) }}" method="POST" class="d-inline">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" 
+                                                    class="btn btn-icon btn-sm bg-danger-subtle" 
+                                                    data-bs-toggle="tooltip" title="Delete">
+                                                <i class="mdi mdi-delete fs-14 text-danger"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                @empty
+                                <tr>
+                                    <td colspan="9" class="text-center">Tidak ada data transaksi.</td>
+                                </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="card-footer py-0 border-top">
+                    <div class="row align-items-center">
+                        <div class="col-sm">
+                            <div class="text-block text-center text-sm-start">
+                                @if ($transaksis->count() > 0)
+                                <span class="fw-medium">
+                                    Showing {{ $transaksis->count() }} of {{ $transaksis->total() }}
+                                </span>
+                                @endif
+                            </div>
+                        </div>
+                        <div class="col-sm-auto mt-3 mt-sm-0">
+                            {{ $transaksis->links('pagination::bootstrap-4') }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-</body>
-</html>
+</div>
+@endsection
