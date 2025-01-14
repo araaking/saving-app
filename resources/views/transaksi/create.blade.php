@@ -5,8 +5,7 @@
 @section('content')
 
 <div class="py-3 d-flex align-items-sm-center flex-sm-row flex-column">
-       
-    </div>
+</div>
 <div class="row">
     <div class="col-12">
         <div class="card">
@@ -19,19 +18,14 @@
                         <form action="{{ route('transaksi.store') }}" method="POST">
                             @csrf
                             <div class="mb-3">
-                                <label for="kelas_id" class="form-label">Kelas</label>
-                                <select name="kelas_id" id="kelas_id" class="form-select" required>
-                                    <option value="">Pilih Kelas</option>
-                                    @foreach ($kelas as $k)
-                                        <option value="{{ $k->id }}">{{ $k->nama }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="buku_tabungan_id" class="form-label">Nomor Buku Tabungan</label>
+                                <label for="buku_tabungan_id" class="form-label">Nomor Buku Tabungan - Nama Siswa</label>
                                 <select name="buku_tabungan_id" id="buku_tabungan_id" class="form-select" required>
-                                    <option value="">Pilih Nomor Buku Tabungan</option>
+                                    <option value="">Pilih Nomor Buku Tabungan - Nama Siswa</option>
+                                    @foreach ($bukuTabungans as $bukuTabungan)
+                                        <option value="{{ $bukuTabungan->id }}">
+                                            {{ $bukuTabungan->nomor_urut }} - {{ $bukuTabungan->siswa->nama }}
+                                        </option>
+                                    @endforeach
                                 </select>
                             </div>
 
@@ -68,28 +62,4 @@
     </div>
 </div>
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script>
-    $(document).ready(function() {
-        $('#kelas_id').change(function() {
-            var kelasId = $(this).val();
-            console.log('Kelas ID:', kelasId); // Debugging input kelas_id
-            $.ajax({
-                url: '/get-buku-tabungan-by-kelas/' + kelasId,
-                type: 'GET',
-                success: function(data) {
-                    console.log('AJAX Response:', data); // Debugging response
-                    $('#buku_tabungan_id').empty();
-                    $('#buku_tabungan_id').append('<option value="">Pilih Nomor Buku Tabungan</option>');
-                    $.each(data, function(index, bukuTabungan) {
-                        $('#buku_tabungan_id').append('<option value="' + bukuTabungan.id + '">' + bukuTabungan.nomor_urut + ' - ' + bukuTabungan.siswa.nama + '</option>');
-                    });
-                },
-                error: function(xhr, status, error) {
-                    console.error('AJAX Error:', xhr.responseText); // Debugging error
-                }
-            });
-        });
-    });
-</script>
 @endsection

@@ -28,11 +28,13 @@ class TransaksiController extends Controller
      * Menampilkan form untuk membuat transaksi baru.
      */
     public function create()
-    {
-        // Ambil semua kelas untuk filter Buku Tabungan
-        $kelas = Kelas::all();
-        return view('transaksi.create', compact('kelas'));
-    }
+{
+    // Ambil semua Buku Tabungan dengan relasi siswa
+    $bukuTabungans = BukuTabungan::with('siswa')->get();
+
+    // Kirim data ke view
+    return view('transaksi.create', compact('bukuTabungans'));
+}
 
     /**
      * Mengambil data Buku Tabungan berdasarkan Kelas (AJAX).
@@ -47,64 +49,59 @@ class TransaksiController extends Controller
     return response()->json($bukuTabungans);
 }
 
-
-
-
     /**
      * Menyimpan transaksi baru ke database.
      */
     public function store(Request $request)
-    {
-        // Validasi input
-        $request->validate([
-            'kelas_id' => 'required|exists:kelas,id', // Validasi kelas
-            'buku_tabungan_id' => 'required|exists:buku_tabungan,id', // Validasi buku tabungan
-            'simpanan' => 'nullable|numeric|min:0', // Simpanan (opsional)
-            'cicilan' => 'nullable|numeric|min:0', // Cicilan (opsional)
-            'penarikan' => 'nullable|numeric|min:0', // Penarikan (opsional)
-            'keterangan' => 'nullable|string', // Keterangan (opsional)
-        ]);
+{
+    // Validasi input
+    $request->validate([
+        'buku_tabungan_id' => 'required|exists:buku_tabungan,id',
+        'simpanan' => 'nullable|numeric|min:0',
+        'cicilan' => 'nullable|numeric|min:0',
+        'penarikan' => 'nullable|numeric|min:0',
+        'keterangan' => 'nullable|string',
+    ]);
 
-        // Pastikan admin mengisi minimal satu dari Simpanan, Cicilan, atau Penarikan
-        if (!$request->has('simpanan') && !$request->has('cicilan') && !$request->has('penarikan')) {
-            return back()->with('error', 'Harus mengisi minimal satu dari Simpanan, Cicilan, atau Penarikan.');
-        }
-
-        // Simpan transaksi untuk Simpanan (jika diisi)
-        if ($request->has('simpanan') && $request->simpanan > 0) {
-            Transaksi::create([
-                'buku_tabungan_id' => $request->buku_tabungan_id,
-                'jenis' => 'simpanan',
-                'jumlah' => $request->simpanan,
-                'tanggal' => now(), // Tanggal otomatis
-                'keterangan' => $request->keterangan,
-            ]);
-        }
-
-        // Simpan transaksi untuk Cicilan (jika diisi)
-        if ($request->has('cicilan') && $request->cicilan > 0) {
-            Transaksi::create([
-                'buku_tabungan_id' => $request->buku_tabungan_id,
-                'jenis' => 'cicilan',
-                'jumlah' => $request->cicilan,
-                'tanggal' => now(), // Tanggal otomatis
-                'keterangan' => $request->keterangan,
-            ]);
-        }
-
-        // Simpan transaksi untuk Penarikan (jika diisi)
-        if ($request->has('penarikan') && $request->penarikan > 0) {
-            Transaksi::create([
-                'buku_tabungan_id' => $request->buku_tabungan_id,
-                'jenis' => 'penarikan',
-                'jumlah' => $request->penarikan,
-                'tanggal' => now(), // Tanggal otomatis
-                'keterangan' => $request->keterangan,
-            ]);
-        }
-
-        return redirect()->route('transaksi.index')->with('success', 'Transaksi berhasil ditambahkan.');
+    // Pastikan admin mengisi minimal satu dari Simpanan, Cicilan, atau Penarikan
+    if (!$request->has('simpanan') && !$request->has('cicilan') && !$request->has('penarikan')) {
+        return back()->with('error', 'Harus mengisi minimal satu dari Simpanan, Cicilan, atau Penarikan.');
     }
+
+    // Simpan transaksi
+    if ($request->has('simpanan') && $request->simpanan > 0) {
+        Transaksi::create([
+            'buku_tabungan_id' => $request->buku_tabungan_id,
+            'jenis' => 'simpanan',
+            'jumlah' => $request->simpanan,
+            'tanggal' => now(),
+            'keterangan' => $request->keterangan,
+        ]);
+    }
+
+    if ($request->has('cicilan') && $request->cicilan > 0) {
+        Transaksi::create([
+            'buku_tabungan_id' => $request->buku_tabungan_id,
+            'jenis' => 'cicilan',
+            'jumlah' => $request->cicilan,
+            'tanggal' => now(),
+            'keterangan' => $request->keterangan,
+        ]);
+    }
+
+    if ($request->has('penarikan') && $request->penarikan > 0) {
+        Transaksi::create([
+            'buku_tabungan_id' => $request->buku_tabungan_id,
+            'jenis' => 'penarikan',
+            'jumlah' => $request->penarikan,
+            'tanggal' => now(),
+            'keterangan' => $request->keterangan,
+        ]);
+    }
+
+    return redirect()->route('transaksi.index')->with('success', 'Transaksi berhasil ditambahkan.');
+}
+
 
     /**
      * Menampilkan detail transaksi.
