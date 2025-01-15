@@ -49,26 +49,21 @@
                 </li>
 
                 <li class="menu-title">Keuangan</li>
-                
+                <li>
+                    <a href="{{ route('transaksi.index') }}" class="tp-link">
+                        <i data-feather="user"></i>
+                        <span> Data Tabungan </span>
+                    </a>
+                </li>
 
-                            <li>
-                                <a href="#sidebarDashboards" data-bs-toggle="collapse">
-                                    <i data-feather="credit-card"></i>
-                                    <span> Tabungan </span>
-                                    <span class="menu-arrow"></span>
-                                </a>
-                                <div class="collapse" id="sidebarDashboards">
-                                    <ul class="nav-second-level">
-                                        <li>
-                                            <a href="{{ route('transaksi.index') }}" class="tp-link">Data Tabungan</a>
-                                        </li>
-                                        <li>
-                                            <a href="{{ route('buku-tabungan.index') }}" class="tp-link">Buku Tabungan</a>
-                                        </li>
-                                        
-                                    </ul>
-                                </div>
-                            </li>
+                <li>
+                    <a href="{{ route('buku-tabungan.index') }}" class="tp-link">
+                        <i data-feather="user"></i>
+                        <span> Buku Tabungan </span>
+                    </a>
+                </li>
+
+                            
             </ul>
             
             

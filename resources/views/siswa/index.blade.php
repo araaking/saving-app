@@ -10,8 +10,6 @@
     </div>
 
     <!-- Card Header with Filter & Search -->
-
-    <!-- Card with Table for Daftar Siswa -->
     <div class="card overflow-hidden mt-4">
         <div class="card-header">
             <div class="d-flex align-items-center">
@@ -40,7 +38,8 @@
                 <table class="table table-borderless table-centered align-middle table-nowrap mb-0">
                     <thead class="text-muted table-light">
                         <tr>
-                            <th scope="col" class="cursor-pointer">ID</th>
+                            <th scope="col" class="cursor-pointer">No</th>
+                            <th scope="col" class="cursor-pointer">NIS</th>
                             <th scope="col" class="cursor-pointer">Nama Siswa</th>
                             <th scope="col" class="cursor-pointer">Kelas</th>
                             <th scope="col" class="cursor-pointer">Action</th>
@@ -49,7 +48,8 @@
                     <tbody>
                         @forelse ($siswas as $siswa)
                             <tr>
-                                <td>{{ $siswa->id }}</td>
+                                <td>{{ $loop->iteration }}</td>
+                                <td>{{ $siswa->nis ?? '-' }}</td>
                                 <td>
                                     <div class="d-flex align-items-center">
                                         {{ $siswa->nama }}
