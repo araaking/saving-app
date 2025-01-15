@@ -29,11 +29,20 @@ class TransaksiController extends Controller
      */
     public function create()
 {
-    // Ambil semua Buku Tabungan dengan relasi siswa
-    $bukuTabungans = BukuTabungan::with('siswa')->get();
+    // Ambil semua kelas
+    $kelas = Kelas::all();
+
+    // Query buku tabungan dengan relasi siswa
+    $bukuTabungans = BukuTabungan::with('siswa')
+        ->when(request('kelas_id'), function($query) {
+            $query->whereHas('siswa', function($q) {
+                $q->where('kelas_id', request('kelas_id'));
+            });
+        })
+        ->get();
 
     // Kirim data ke view
-    return view('transaksi.create', compact('bukuTabungans'));
+    return view('transaksi.create', compact('bukuTabungans', 'kelas'));
 }
 
     /**

@@ -1,6 +1,6 @@
 @extends('layouts.layout')
 
-@section('title', 'Tambah Tahun Ajaran')
+@section('title', 'Edit Tahun Ajaran')
 
 @section('content')
 <div class="container-fluid">
@@ -11,7 +11,7 @@
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Dashboard</a></li>
                     <li class="breadcrumb-item"><a href="{{ route('tahun-ajaran.index') }}">Tahun Ajaran</a></li>
-                    <li class="breadcrumb-item active" aria-current="page">Tambah Tahun Ajaran</li>
+                    <li class="breadcrumb-item active" aria-current="page">Edit Tahun Ajaran</li>
                 </ol>
             </nav>
         </div>
@@ -23,14 +23,15 @@
             <div class="card">
                 <!-- Card Header -->
                 <div class="card-header">
-                    <h4 class="card-title">Tambah Tahun Ajaran Baru</h4>
+                    <h4 class="card-title">Edit Tahun Ajaran</h4>
                 </div>
 
                 <!-- Card Body -->
                 <div class="card-body">
                     <!-- Form -->
-                    <form action="{{ route('tahun-ajaran.store') }}" method="POST">
+                    <form action="{{ route('tahun-ajaran.update', $tahunAjaran->id) }}" method="POST">
                         @csrf
+                        @method('PUT')
 
                         <!-- Error Messages -->
                         @if($errors->any())
@@ -51,7 +52,7 @@
                                    id="nama" 
                                    class="form-control @error('nama') is-invalid @enderror" 
                                    placeholder="Masukkan Nama Tahun Ajaran"
-                                   value="{{ old('nama') }}"
+                                   value="{{ old('nama', $tahunAjaran->nama) }}"
                                    required>
                             @error('nama')
                                 <div class="invalid-feedback">
@@ -63,7 +64,7 @@
                         <!-- Form Actions -->
                         <div class="mb-3">
                             <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-save"></i> Simpan
+                                <i class="fas fa-save"></i> Update
                             </button>
                             <a href="{{ route('tahun-ajaran.index') }}" class="btn btn-secondary">
                                 <i class="fas fa-arrow-left"></i> Kembali

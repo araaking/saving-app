@@ -12,10 +12,25 @@
             <div class="card-header">
                 <h5 class="card-title mb-0">Tambah Transaksi</h5>
             </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-lg-6">
-                        <form action="{{ route('transaksi.store') }}" method="POST">
+<div class="card-body">
+    
+    
+    <div class="row">
+        <div class="col-lg-6">
+        <form action="{{ route('transaksi.create') }}" method="GET">
+                <div class="mb-3">
+                    <label for="kelas_id" class="form-label">Filter Kelas</label>
+                    <select name="kelas_id" id="kelas_id" class="form-select" onchange="this.form.submit()">
+                        <option value="">Semua Kelas</option>
+                        @foreach ($kelas as $k)
+                            <option value="{{ $k->id }}" {{ request('kelas_id') == $k->id ? 'selected' : '' }}>
+                                {{ $k->nama }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+            </form>
+            <form action="{{ route('transaksi.store') }}" method="POST">
                             @csrf
                             <div class="mb-3">
                                 <label for="buku_tabungan_id" class="form-label">Nomor Buku Tabungan - Nama Siswa</label>

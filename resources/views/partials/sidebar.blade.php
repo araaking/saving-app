@@ -4,74 +4,78 @@
             <div class="logo-box">
                 <a href="{{ route('dashboard') }}" class="logo logo-light">
                     <span class="logo-sm">
-                        <img src="{{ asset('assets/images/logo-sm.png') }}" alt="" height="22">
+                        <img src="{{ asset('assets/images/logo-sm.png') }}" 
+                            alt="Logo Small" 
+                            height="22">
                     </span>
                     <span class="logo-lg">
-                        <img src="{{ asset('assets/images/logo-light.png') }}" alt="" height="24">
+                        <img src="{{ asset('assets/images/logo-light.png') }}" 
+                            alt="Logo Light" 
+                            height="24">
                     </span>
                 </a>
                 <a href="{{ route('dashboard') }}" class="logo logo-dark">
                     <span class="logo-sm">
-                        <img src="{{ asset('assets/images/logo-sm.png') }}" alt="" height="22">
+                        <img src="{{ asset('assets/images/logo-sm.png') }}" 
+                            alt="Logo Small" 
+                            height="22">
                     </span>
                     <span class="logo-lg">
-                        <img src="{{ asset('assets/images/logo-dark.png') }}" alt="" height="24">
+                        <img src="{{ asset('assets/images/logo-dark.png') }}" 
+                            alt="Logo Dark" 
+                            height="24">
                     </span>
                 </a>
             </div>
 
             <ul id="side-menu">
+                <!-- Menu Utama -->
                 <li class="menu-title">Menu</li>
                 <li>
                     <a href="{{ route('dashboard') }}" class="tp-link">
                         <i data-feather="home"></i>
-                        <span> Dashboard </span>
+                        <span>Dashboard</span>
                     </a>
                 </li>
+
+                <!-- Menu Akademik -->
                 <li class="menu-title">Akademik</li>
                 <li>
                     <a href="{{ route('tahun-ajaran.index') }}" class="tp-link">
                         <i data-feather="calendar"></i>
-                        <span> Tahun Ajaran </span>
+                        <span>Tahun Ajaran</span>
                     </a>
                 </li>
                 <li>
                     <a href="{{ route('kelas.index') }}" class="tp-link">
                         <i data-feather="grid"></i>
-                        <span> Kelas </span>
+                        <span>Kelas</span>
                     </a>
                 </li>
                 <li>
                     <a href="{{ route('siswa.index') }}" class="tp-link">
                         <i data-feather="user"></i>
-                        <span> Siswa </span>
+                        <span>Siswa</span>
                     </a>
                 </li>
 
+                <!-- Menu Keuangan -->
                 <li class="menu-title">Keuangan</li>
                 <li>
                     <a href="{{ route('transaksi.index') }}" class="tp-link">
-                        <i data-feather="user"></i>
-                        <span> Data Tabungan </span>
+                        <i data-feather="dollar-sign"></i>
+                        <span>Data Tabungan</span>
                     </a>
                 </li>
-
                 <li>
                     <a href="{{ route('buku-tabungan.index') }}" class="tp-link">
-                        <i data-feather="user"></i>
-                        <span> Buku Tabungan </span>
+                        <i data-feather="book"></i>
+                        <span>Buku Tabungan</span>
                     </a>
                 </li>
-
-                            
             </ul>
             
-            
+            <div class="clearfix"></div>
         </div>
-        
-        <div class="clearfix"></div>
     </div>
 </div>
-
-
-
