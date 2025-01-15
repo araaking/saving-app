@@ -51,8 +51,41 @@
                             @forelse($tahunAjaran as $key => $tahun)
                                 <tr>
                                     <td>{{ $key + 1 }}</td>
-                                    <td>{{ $tahun->nama }}</td>
                                     <td>
+                                        {{ $tahun->nama }}
+                                        @if($tahun->is_active)
+                                            <span class="badge bg-success">Aktif</span>
+                                        @else
+                                            <span class="badge bg-secondary">Nonaktif</span>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @if(!$tahun->is_active)
+                                            <form action="{{ route('tahun-ajaran.aktifkan', $tahun->id) }}" 
+                                                  method="POST" 
+                                                  class="d-inline"
+                                                  onsubmit="return confirm('Apakah Anda yakin ingin mengaktifkan tahun ajaran ini?')">
+                                                @csrf
+                                                <button type="submit" 
+                                                        class="btn btn-success btn-sm"
+                                                        title="Aktifkan Tahun Ajaran">
+                                                    <i class="fas fa-check-circle"></i>
+                                                </button>
+                                            </form>
+                                        @else
+                                            <form action="{{ route('tahun-ajaran.nonaktifkan', $tahun->id) }}" 
+                                                  method="POST" 
+                                                  class="d-inline"
+                                                  onsubmit="return confirm('Apakah Anda yakin ingin menonaktifkan tahun ajaran ini?')">
+                                                @csrf
+                                                <button type="submit" 
+                                                        class="btn btn-secondary btn-sm"
+                                                        title="Nonaktifkan Tahun Ajaran">
+                                                    <i class="fas fa-times-circle"></i>
+                                                </button>
+                                            </form>
+                                        @endif
+
                                         <!-- Edit Button -->
                                         <a href="{{ route('tahun-ajaran.edit', $tahun->id) }}" 
                                            class="btn btn-warning btn-sm"

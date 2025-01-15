@@ -61,6 +61,22 @@
                             @enderror
                         </div>
 
+                        <!-- Status Aktif Field -->
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" 
+                                   name="is_active" 
+                                   id="is_active" 
+                                   class="form-check-input"
+                                   value="1"
+                                   {{ old('is_active', $tahunAjaran->is_active) ? 'checked' : '' }}>
+                            <label for="is_active" class="form-check-label">Aktif</label>
+                            @error('is_active')
+                                <div class="invalid-feedback">
+                                    {{ $message }}
+                                </div>
+                            @enderror
+                        </div>
+
                         <!-- Form Actions -->
                         <div class="mb-3">
                             <button type="submit" class="btn btn-primary">

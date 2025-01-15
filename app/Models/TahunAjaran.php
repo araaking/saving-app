@@ -12,8 +12,28 @@ class TahunAjaran extends Model
     protected $table = 'tahun_ajaran';
 
     protected $fillable = [
-        'nama'
+        'nama',
+        'is_active'
     ];
+
+    public function scopeAktif($query)
+    {
+        return $query->where('is_active', true);
+    }
+
+    public function aktifkan()
+    {
+        // Nonaktifkan semua tahun ajaran terlebih dahulu
+        self::query()->update(['is_active' => false]);
+        
+        // Aktifkan tahun ajaran ini
+        $this->update(['is_active' => true]);
+    }
+
+    public function nonaktifkan()
+    {
+        $this->update(['is_active' => false]);
+    }
 
     public function bukuTabungans()
     {

@@ -13,7 +13,7 @@ class CreateBukuTabunganTable extends Migration
             $table->foreignId('siswa_id')->constrained('siswa')->onDelete('cascade');
             $table->foreignId('tahun_ajaran_id')->constrained('tahun_ajaran')->onDelete('cascade');
             $table->integer('nomor_urut');
-            $table->unique(['tahun_ajaran_id', 'siswa_id', 'nomor_urut']);
+            // Unique constraint akan ditambahkan setelah kolom kelas_id dibuat
             $table->timestamps();
         });
     }

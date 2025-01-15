@@ -14,7 +14,8 @@ class BukuTabungan extends Model
     protected $fillable = [
         'siswa_id',
         'tahun_ajaran_id',
-        'nomor_urut' // digunakan sebagai nomor buku tabungan
+        'nomor_urut',
+        'kelas_id'
     ];
 
     public function tahunAjaran()

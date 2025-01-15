@@ -28,6 +28,10 @@ Route::middleware('auth')->group(function () {
 
     // Route untuk Tahun Ajaran
     Route::resource('tahun-ajaran', TahunAjaranController::class)->except(['show']);
+    Route::post('tahun-ajaran/{id}/aktifkan', [TahunAjaranController::class, 'aktifkan'])
+        ->name('tahun-ajaran.aktifkan');
+    Route::post('tahun-ajaran/{id}/nonaktifkan', [TahunAjaranController::class, 'nonaktifkan'])
+        ->name('tahun-ajaran.nonaktifkan');
 
     // Route untuk Kelas
     Route::resource('kelas', KelasController::class);
