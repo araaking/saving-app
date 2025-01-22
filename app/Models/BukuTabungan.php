@@ -19,7 +19,7 @@ class BukuTabungan extends Model
 
     public function tahunAjaran()
     {
-        return $this->belongsTo(TahunAjaran::class);
+        return $this->belongsTo(\App\Models\TahunAjaran::class);
     }
 
     public function siswa()

@@ -29,22 +29,49 @@ class TahunAjaranController extends Controller
     }
 
     /**
+     * Menampilkan form untuk mengedit tahun ajaran.
+     */
+    public function edit($id)
+    {
+        // Ambil data tahun ajaran berdasarkan ID
+        $tahunAjaran = TahunAjaran::findOrFail($id);
+
+        // Tampilkan view tahun_ajaran.edit dengan data
+        return view('tahun_ajaran.edit', compact('tahunAjaran'));
+    }
+
+    /**
      * Menyimpan tahun ajaran baru ke database.
      */
     public function store(Request $request)
     {
         // Validasi input
-        $request->validate([
-            'nama' => 'required|string|max:255', // Sesuaikan dengan field di form
+        $validated = $request->validate([
+            'year_name' => 'required|string|max:255|unique:tahun_ajaran',
+            'is_active' => 'required|integer|in:0,1'
         ]);
 
-        // Simpan data ke database
-        TahunAjaran::create([
-            'nama' => $request->nama, // Sesuaikan dengan field di form
-        ]);
+        TahunAjaran::create($validated);
 
         // Redirect ke halaman daftar tahun ajaran dengan pesan sukses
         return redirect()->route('tahun-ajaran.index')->with('success', 'Tahun ajaran berhasil ditambahkan.');
+    }
+
+    /**
+     * Mengupdate tahun ajaran di database.
+     */
+    public function update(Request $request, $id)
+    {
+        // Validasi input
+        $validated = $request->validate([
+            'year_name' => 'required|string|max:255|unique:tahun_ajaran,year_name,'.$id,
+            'is_active' => 'required|integer|in:0,1'
+        ]);
+
+        $tahun = TahunAjaran::findOrFail($id);
+        $tahun->update($validated);
+
+        return redirect()->route('tahun-ajaran.index')->with('success', 'Tahun ajaran berhasil diupdate.');
     }
 
     /**

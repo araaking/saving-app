@@ -10,7 +10,8 @@ class CreateTahunAjaranTable extends Migration
     {
         Schema::create('tahun_ajaran', function (Blueprint $table) {
             $table->id();
-            $table->string('nama')->unique();
+            $table->string('year_name')->unique()->comment('Format: "YYYY/YYYY" contoh: "2023/2024"');
+            $table->boolean('is_active')->default(false)->comment('Hanya 1 tahun ajaran aktif dalam sistem');
             $table->timestamps();
         });
     }

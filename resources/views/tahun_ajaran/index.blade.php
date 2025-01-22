@@ -43,15 +43,23 @@
                         <thead>
                             <tr>
                                 <th width="5%">No</th>
-                                <th>Nama Tahun Ajaran</th>
-                                <th width="20%">Aksi</th>
+                    <th>Nama Tahun Ajaran</th>
+                    <th>Status Aktif</th>
+                    <th width="20%">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
                             @forelse($tahunAjaran as $key => $tahun)
                                 <tr>
                                     <td>{{ $key + 1 }}</td>
-                                    <td>{{ $tahun->nama }}</td>
+                                    <td>{{ $tahun->year_name }}</td>
+                                    <td>
+                                        @if($tahun->is_active)
+                                            <span class="badge bg-success">Aktif</span>
+                                        @else
+                                            <span class="badge bg-secondary">Nonaktif</span>
+                                        @endif
+                                    </td>
                                     <td>
                                         <!-- Edit Button -->
                                         <a href="{{ route('tahun-ajaran.edit', $tahun->id) }}" 

@@ -46,15 +46,19 @@
 
                         <!-- Nama Tahun Ajaran Field -->
                         <div class="mb-3">
-                            <label for="nama" class="form-label">Nama Tahun Ajaran</label>
+                            <label for="year_name" class="form-label">Tahun Ajaran</label>
                             <input type="text" 
-                                   name="nama" 
-                                   id="nama" 
-                                   class="form-control @error('nama') is-invalid @enderror" 
-                                   placeholder="Masukkan Nama Tahun Ajaran"
-                                   value="{{ old('nama', $tahunAjaran->nama) }}"
-                                   required>
-                            @error('nama')
+                                   name="year_name" 
+                                   id="year_name" 
+                                   class="form-control @error('year_name') is-invalid @enderror" 
+                                   placeholder="Contoh: 2023/2024"
+                                   value="{{ old('year_name', $tahunAjaran->year_name) }}"
+                                   required
+                                   pattern="\d{4}/\d{4}"
+                                   title="Format harus YYYY/YYYY"
+                                   oninput="this.value = this.value.replace(/[^0-9]/g, '').replace(/(\d{4})(\d{4})/, '$1/$2')"
+                                   maxlength="9">
+                            @error('year_name')
                                 <div class="invalid-feedback">
                                     {{ $message }}
                                 </div>
@@ -62,6 +66,20 @@
                         </div>
 
                         <!-- Form Actions -->
+                        <!-- Status Aktif -->
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input type="hidden" name="is_active" value="0">
+                                <input class="form-check-input" type="checkbox" 
+                                       id="is_active" name="is_active" value="1"
+                                       {{ old('is_active', $tahunAjaran->is_active ? 1 : 0) == 1 ? 'checked' : '' }}>
+                                <label class="form-check-label" for="is_active">
+                                    Tahun Ajaran Aktif
+                                    <small class="text-muted d-block">(Centang untuk mengaktifkan tahun ini)</small>
+                                </label>
+                            </div>
+                        </div>
+
                         <div class="mb-3">
                             <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-save"></i> Update
