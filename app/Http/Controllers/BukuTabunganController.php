@@ -8,10 +8,11 @@ use App\Models\Kelas;
 use App\Models\TahunAjaran;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Database\Query\Builder;
 
 class BukuTabunganController extends Controller
 {
-    // Menampilkan semua data
+    // Tampilkan semua buku tabungan
     public function index()
     {
         $bukuTabungans = BukuTabungan::with(['siswa', 'tahunAjaran', 'kelas'])
@@ -21,25 +22,31 @@ class BukuTabunganController extends Controller
         return view('buku_tabungan.index', compact('bukuTabungans'));
     }
 
-    // Form tambah data
+    // Form tambah buku tabungan
     public function create(Request $request)
     {
-        // Validasi tahun ajaran aktif
+        // Cek tahun ajaran aktif
         $tahunAktif = TahunAjaran::where('is_active', true)->first();
 
         if (!$tahunAktif) {
             return redirect()->route('tahun-ajaran.index')
-                ->with('error', 'Aktifkan tahun ajaran terlebih dahulu!');
+                ->with('error', 'Tidak ada tahun ajaran aktif!');
         }
 
         $kelasList = Kelas::all();
         $selectedKelasId = $request->input('kelas_id');
         $siswas = [];
 
-        // Ambil siswa jika kelas dipilih
+        // Ambil siswa yang BELUM punya buku di tahun ini
         if ($selectedKelasId) {
             $siswas = Siswa::where('class_id', $selectedKelasId)
+                ->where('academic_year_id', $tahunAktif->id) // Pastikan sesuai tahun ajaran aktif
                 ->where('status', 'Aktif')
+                ->whereNotIn('id', function ($query) use ($tahunAktif) {
+                    $query->select('siswa_id')
+                        ->from('buku_tabungan')
+                        ->where('tahun_ajaran_id', $tahunAktif->id);
+                })
                 ->get();
         }
 
@@ -51,16 +58,17 @@ class BukuTabunganController extends Controller
         ));
     }
 
-    // Simpan data baru
+    // Simpan buku tabungan baru
     public function store(Request $request)
     {
         $tahunAktif = TahunAjaran::where('is_active', true)->firstOrFail();
 
         $request->validate([
-            'kelas_id' => 'required|exists:kelas,id',
-            'siswa_id' => [
+            'kelas_id'    => 'required|exists:kelas,id',
+            'siswa_id'    => [
                 'required',
                 'exists:siswa,id',
+                // Pastikan siswa belum punya buku di tahun ini
                 Rule::unique('buku_tabungan')->where(function ($query) use ($tahunAktif) {
                     return $query->where('tahun_ajaran_id', $tahunAktif->id);
                 })
@@ -68,6 +76,7 @@ class BukuTabunganController extends Controller
             'nomor_urut' => [
                 'required',
                 'integer',
+                // Pastikan nomor urut unik per kelas + tahun
                 Rule::unique('buku_tabungan')->where(function ($query) use ($request, $tahunAktif) {
                     return $query->where('class_id', $request->kelas_id)
                         ->where('tahun_ajaran_id', $tahunAktif->id);
@@ -76,25 +85,26 @@ class BukuTabunganController extends Controller
         ]);
 
         BukuTabungan::create([
-            'siswa_id' => $request->siswa_id,
-            'class_id' => $request->kelas_id,
-            'tahun_ajaran_id' => $tahunAktif->id,
-            'nomor_urut' => $request->nomor_urut
+            'siswa_id'         => $request->siswa_id,
+            'class_id'         => $request->kelas_id,
+            'tahun_ajaran_id'  => $tahunAktif->id,
+            'nomor_urut'       => $request->nomor_urut
         ]);
 
         return redirect()->route('buku-tabungan.index')
             ->with('success', 'Buku tabungan berhasil dibuat!');
     }
 
-    // Form edit data
+    // Form edit buku tabungan
     public function edit($id)
     {
         $bukuTabungan = BukuTabungan::findOrFail($id);
         $kelasList = Kelas::all();
         $tahunAjarans = TahunAjaran::all();
 
-        // Ambil siswa di kelas yang sama dengan data asli
+        // Ambil siswa dari kelas asli (sebelum edit)
         $siswas = Siswa::where('class_id', $bukuTabungan->class_id)
+            ->where('academic_year_id', $bukuTabungan->tahun_ajaran_id)
             ->where('status', 'Aktif')
             ->get();
 
@@ -106,16 +116,17 @@ class BukuTabunganController extends Controller
         ));
     }
 
-    // Update data
+    // Update buku tabungan
     public function update(Request $request, $id)
     {
         $bukuTabungan = BukuTabungan::findOrFail($id);
 
         $request->validate([
-            'kelas_id' => 'required|exists:kelas,id',
-            'siswa_id' => [
+            'kelas_id'    => 'required|exists:kelas,id',
+            'siswa_id'    => [
                 'required',
                 'exists:siswa,id',
+                // Ignore data saat ini saat validasi unik
                 Rule::unique('buku_tabungan')->ignore($id)->where(function ($query) use ($request) {
                     return $query->where('tahun_ajaran_id', $request->tahun_ajaran_id);
                 })
@@ -124,6 +135,7 @@ class BukuTabunganController extends Controller
             'nomor_urut' => [
                 'required',
                 'integer',
+                // Ignore data saat ini
                 Rule::unique('buku_tabungan')->ignore($id)->where(function ($query) use ($request) {
                     return $query->where('class_id', $request->kelas_id)
                         ->where('tahun_ajaran_id', $request->tahun_ajaran_id);
@@ -132,17 +144,17 @@ class BukuTabunganController extends Controller
         ]);
 
         $bukuTabungan->update([
-            'siswa_id' => $request->siswa_id,
-            'class_id' => $request->kelas_id,
-            'tahun_ajaran_id' => $request->tahun_ajaran_id,
-            'nomor_urut' => $request->nomor_urut
+            'siswa_id'         => $request->siswa_id,
+            'class_id'         => $request->kelas_id,
+            'tahun_ajaran_id'  => $request->tahun_ajaran_id,
+            'nomor_urut'       => $request->nomor_urut
         ]);
 
         return redirect()->route('buku-tabungan.index')
             ->with('success', 'Buku tabungan berhasil diperbarui!');
     }
 
-    // Hapus data
+    // Hapus buku tabungan
     public function destroy($id)
     {
         $bukuTabungan = BukuTabungan::findOrFail($id);

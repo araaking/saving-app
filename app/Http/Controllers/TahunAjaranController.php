@@ -10,45 +10,37 @@ use Illuminate\Support\Facades\Log;
 
 class TahunAjaranController extends Controller
 {
-    /**
-     * Menampilkan daftar tahun ajaran.
-     */
     public function index()
     {
         $tahunAjaran = TahunAjaran::orderBy('year_name', 'desc')->get();
         return view('tahun_ajaran.index', compact('tahunAjaran'));
     }
 
-    /**
-     * Menampilkan form untuk membuat tahun ajaran baru.
-     */
     public function create()
     {
         return view('tahun_ajaran.create');
     }
 
-    /**
-     * Menyimpan tahun ajaran baru ke database.
-     */
     public function store(Request $request)
     {
         $validated = $request->validate([
             'year_name' => 'required|string|max:255|unique:tahun_ajaran',
         ]);
 
-        // Simpan tahun ajaran aktif sebelumnya SEBELUM dinonaktifkan
-        $tahunSebelumnya = TahunAjaran::where('is_active', true)->first();
-
         // Nonaktifkan semua tahun ajaran
         TahunAjaran::query()->update(['is_active' => false]);
 
-        // Buat tahun ajaran baru dengan status aktif
+        // Buat tahun ajaran baru
         $tahunAjaran = TahunAjaran::create([
             'year_name' => $validated['year_name'],
             'is_active' => true
         ]);
 
         // Proses kenaikan kelas jika ada tahun sebelumnya
+        $tahunSebelumnya = TahunAjaran::where('is_active', false)
+            ->orderBy('id', 'desc')
+            ->first();
+
         if ($tahunSebelumnya) {
             $this->processClassPromotion($tahunAjaran, $tahunSebelumnya);
         }
@@ -57,18 +49,12 @@ class TahunAjaranController extends Controller
             ->with('success', 'Tahun ajaran berhasil ditambahkan.');
     }
 
-    /**
-     * Menampilkan form untuk mengedit tahun ajaran.
-     */
     public function edit($id)
     {
         $tahunAjaran = TahunAjaran::findOrFail($id);
         return view('tahun_ajaran.edit', compact('tahunAjaran'));
     }
 
-    /**
-     * Mengupdate tahun ajaran di database.
-     */
     public function update(Request $request, $id)
     {
         $validated = $request->validate([
@@ -76,22 +62,18 @@ class TahunAjaranController extends Controller
         ]);
 
         $tahunAjaran = TahunAjaran::findOrFail($id);
-        $tahunAjaran->update($validated); // Hanya update year_name
+        $tahunAjaran->update($validated);
 
         return redirect()->route('tahun-ajaran.index')
             ->with('success', 'Tahun ajaran berhasil diperbarui.');
     }
 
-    /**
-     * Menghapus tahun ajaran dari database.
-     */
     public function destroy($id)
     {
         $tahunAjaran = TahunAjaran::findOrFail($id);
 
-        // Hapus siswa yang terkait dengan tahun ajaran ini
+        // Hapus siswa terkait tahun ini
         Siswa::where('academic_year_id', $tahunAjaran->id)->delete();
-
         $tahunAjaran->delete();
 
         return redirect()->route('tahun-ajaran.index')
@@ -126,14 +108,14 @@ class TahunAjaranController extends Controller
             if ($kelasTujuan) {
                 $siswa->update([
                     'class_id'          => $kelasTujuan->id,
-                    'academic_year_id' => $tahunBaru->id,
+                    'academic_year_id' => $tahunBaru->id, // Update academic_year_id ke tahun baru
                     'status'            => 'Aktif'
                 ]);
                 Log::info("Siswa ID {$siswa->id} naik ke kelas {$kelasTujuan->name}");
             } else {
                 $siswa->update([
                     'status'            => 'Lulus',
-                    'academic_year_id' => $tahunBaru->id
+                    'academic_year_id' => $tahunBaru->id // Tetap update academic_year_id
                 ]);
                 Log::info("Siswa ID {$siswa->id} lulus dari kelas {$kelasSekarang->name}");
             }

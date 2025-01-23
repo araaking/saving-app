@@ -18,7 +18,7 @@
                         @foreach($kelasList as $kelas)
                             <option 
                                 value="{{ $kelas->id }}" 
-                                {{ $selectedKelasId == $kelas->id ? 'selected' : '' }}>
+                                {{ old('kelas_id', $selectedKelasId) == $kelas->id ? 'selected' : '' }}>
                                 {{ $kelas->name }} (Tingkat {{ $kelas->tingkat }})
                             </option>
                         @endforeach
@@ -47,13 +47,19 @@
                                 <option 
                                     value="{{ $siswa->id }}" 
                                     {{ old('siswa_id') == $siswa->id ? 'selected' : '' }}>
-                                    {{ $siswa->name }}
+                                    {{ $siswa->name }} 
+                                    @if($siswa->status != 'Aktif')
+                                        ({{ $siswa->status }})
+                                    @endif
                                 </option>
                             @endforeach
                         </select>
                         @error('siswa_id')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
+                        @if($siswas->isEmpty())
+                            <small class="text-danger">Tidak ada siswa yang tersedia di kelas ini.</small>
+                        @endif
                     </div>
 
                     <!-- Tahun Ajaran (Auto) -->
@@ -72,11 +78,15 @@
                             class="form-control @error('nomor_urut') is-invalid @enderror" 
                             value="{{ old('nomor_urut') }}" 
                             required
-                            placeholder="Contoh: 1">
+                            placeholder="Contoh: 1"
+                            min="1">
                         @error('nomor_urut')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
-                        <small class="text-muted">Harus unik untuk kelas dan tahun ajaran ini</small>
+                        <small class="text-muted">
+                            Harus unik untuk kelas {{ \App\Models\Kelas::find($selectedKelasId)->name }} 
+                            dan tahun ajaran {{ $tahunAktif->year_name }}
+                        </small>
                     </div>
 
                     <!-- Tombol -->
