@@ -11,10 +11,17 @@
                 </div>
             <div class="card overflow-hidden">
                 <div class="card-header">
-                    <div class="d-flex align-items-center">
-                        <h5 class="card-title mb-0">Daftar Transaksi</h5>
-                        <a href="{{ route('transaksi.create') }}" class="btn btn-sm btn-primary ms-auto">Tambah Transaksi</a>
-                    </div>
+                <div class="d-flex align-items-center">
+    <h5 class="card-title mb-0">Daftar Transaksi</h5>
+    <div class="ms-auto">
+        <a href="{{ route('transaksi.create') }}" class="btn btn-sm btn-primary me-2">
+            <i class="mdi mdi-plus me-1"></i> Tambah Transaksi
+        </a>
+        <a href="{{ route('transaksi.penarikan.create') }}" class="btn btn-sm btn-danger">
+            <i class="mdi mdi-cash-remove me-1"></i> Tambah Penarikan
+        </a>
+    </div>
+</div>
                 </div>
 
                 <div class="card-body p-0">
@@ -38,8 +45,8 @@
                                 <tr>
                                     <td>{{ $transaksi->id }}</td>
                                     <td>{{ $transaksi->bukuTabungan->nomor_urut }}</td>
-                                    <td>{{ $transaksi->bukuTabungan->siswa->nama }}</td>
-                                    <td>{{ $transaksi->bukuTabungan->siswa->kelas->nama }}</td>
+                                    <td>{{ $transaksi->bukuTabungan->siswa->name }}</td>
+                                    <td>{{ $transaksi->bukuTabungan->siswa->kelas->name }}</td>
                                     <td>{{ ucfirst($transaksi->jenis) }}</td>
                                     <td>{{ number_format($transaksi->jumlah, 0, ',', '.') }}</td>
                                     <td>{{ $transaksi->tanggal->format('d/m/Y H:i:s') }}</td>

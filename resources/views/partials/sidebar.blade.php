@@ -68,6 +68,12 @@
                     </a>
                 </li>
                 <li>
+                    <a href="{{ route('transaksi.penarikan.create') }}" class="tp-link">
+                        <i data-feather="dollar-sign"></i>
+                        <span>Penarikan/Pinjaman</span>
+                    </a>
+                </li>
+                <li>
                     <a href="{{ route('buku-tabungan.index') }}" class="tp-link">
                         <i data-feather="book"></i>
                         <span>Buku Tabungan</span>

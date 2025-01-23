@@ -1,19 +1,19 @@
 @extends('layouts.layout')
 
-@section('title', 'Tambah Transaksi')
+@section('title', 'Penarikan Tabungan')
 
 @section('content')
 <div class="row">
     <div class="col-12">
         <div class="card">
             <div class="card-header">
-                <h5 class="card-title mb-0">Tambah Simpanan/Cicilan</h5>
+                <h5 class="card-title mb-0">Form Penarikan</h5>
             </div>
             <div class="card-body">
                 <div class="row">
                     <div class="col-lg-6">
                         <!-- Form Filter Kelas -->
-                        <form action="{{ route('transaksi.create') }}" method="GET">
+                        <form action="{{ route('transaksi.penarikan.create') }}" method="GET">
                             <div class="mb-3">
                                 <label for="kelas_id" class="form-label">Filter Kelas</label>
                                 <select name="kelas_id" id="kelas_id" class="form-select" onchange="this.form.submit()">
@@ -27,8 +27,8 @@
                             </div>
                         </form>
 
-                        <!-- Form Transaksi -->
-                        <form action="{{ route('transaksi.store') }}" method="POST">
+                        <!-- Form Penarikan -->
+                        <form action="{{ route('transaksi.penarikan.store') }}" method="POST">
                             @csrf
                             <div class="mb-3">
                                 <label for="buku_tabungan_id" class="form-label">Buku Tabungan</label>
@@ -43,15 +43,24 @@
                             </div>
 
                             <div class="mb-3">
-                                <label for="simpanan" class="form-label">Simpanan (Rp)</label>
-                                <input type="number" name="simpanan" class="form-control" step="0.01" placeholder="0">
+                                <label for="jumlah" class="form-label">Jumlah Penarikan (Rp)</label>
+                                <input type="number" name="jumlah" class="form-control" step="0.01" required>
                             </div>
                     </div>
 
                     <div class="col-lg-6">
                             <div class="mb-3">
-                                <label for="cicilan" class="form-label">Cicilan (Rp)</label>
-                                <input type="number" name="cicilan" class="form-control" step="0.01" placeholder="0">
+                                <label class="form-label">Sumber Penarikan</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="sumber_penarikan" 
+                                        id="simpanan" value="simpanan" required>
+                                    <label class="form-check-label" for="simpanan">Simpanan</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="sumber_penarikan" 
+                                        id="cicilan" value="cicilan">
+                                    <label class="form-check-label" for="cicilan">Cicilan</label>
+                                </div>
                             </div>
 
                             <div class="mb-3">
@@ -60,8 +69,8 @@
                             </div>
 
                             <div class="mb-3">
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="fas fa-save me-2"></i> Simpan Transaksi
+                                <button type="submit" class="btn btn-danger">
+                                    <i class="fas fa-coins me-2"></i> Proses Penarikan
                                 </button>
                             </div>
                         </form>

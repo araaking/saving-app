@@ -18,13 +18,13 @@ class Transaksi extends Model
         'jenis',
         'jumlah',
         'tanggal',
-        'keterangan'
+        'keterangan',
+        'sumber_penarikan' // Tambahkan kolom ini
     ];
 
     // Casting kolom ke tipe data tertentu
     protected $casts = [
-        'tanggal' => 'datetime', // Mengubah kolom 'tanggal' ke tipe datetime
-        'jumlah' => 'decimal:2',  // Pastikan kolom 'jumlah' di-handle sebagai decimal 2 digit
+        'tanggal' => 'datetime', // Format datetime untuk kolom tanggal
     ];
 
     // Relasi ke model BukuTabungan

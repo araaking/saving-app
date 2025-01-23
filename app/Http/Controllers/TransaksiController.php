@@ -5,158 +5,173 @@ namespace App\Http\Controllers;
 use App\Models\Transaksi;
 use App\Models\BukuTabungan;
 use App\Models\Kelas;
+use App\Models\TahunAjaran;
 use Illuminate\Http\Request;
 
 class TransaksiController extends Controller
 {
-    /**
-     * Menampilkan daftar transaksi.
-     */
+    // Menampilkan daftar semua transaksi
     public function index()
     {
-        // Ambil data transaksi beserta relasi bukuTabungan, siswa, dan kelas
-        // Ambil data transaksi beserta relasi bukuTabungan, siswa, dan kelas, dengan pagination
-    $transaksis = Transaksi::with(['bukuTabungan.siswa.kelas'])->paginate(10);
+        $transaksis = Transaksi::with(['bukuTabungan.siswa.kelas'])
+            ->orderBy('tanggal', 'desc')
+            ->paginate(10);
 
-    // Kirim data transaksi ke view
-    return view('transaksi.index', compact('transaksis'));
-
-        
+        return view('transaksi.index', compact('transaksis'));
     }
 
-    /**
-     * Menampilkan form untuk membuat transaksi baru.
-     */
-    public function create()
-{
-    // Ambil semua kelas
-    $kelas = Kelas::all();
+    // Form transaksi simpanan & cicilan
+    public function create(Request $request)
+    {
+        // Cek tahun ajaran aktif
+        $tahunAktif = TahunAjaran::where('is_active', true)->first();
 
-    // Query buku tabungan dengan relasi siswa
-    $bukuTabungans = BukuTabungan::with('siswa')
-        ->when(request('kelas_id'), function($query) {
-            $query->whereHas('siswa', function($q) {
-                $q->where('kelas_id', request('kelas_id'));
+        if (!$tahunAktif) {
+            return redirect()->route('dashboard')
+                ->with('error', 'Tidak ada tahun ajaran aktif!');
+        }
+
+        $kelas = Kelas::all();
+        $selectedKelasId = $request->input('kelas_id');
+        $bukuTabungans = BukuTabungan::query()
+            ->where('tahun_ajaran_id', $tahunAktif->id) // Filter tahun ajaran aktif
+            ->whereHas('siswa', function ($query) {
+                $query->where('status', 'Aktif'); // Hanya siswa aktif
             });
-        })
-        ->get();
 
-    // Kirim data ke view
-    return view('transaksi.create', compact('bukuTabungans', 'kelas'));
-}
+        // Filter berdasarkan kelas jika dipilih
+        if ($selectedKelasId) {
+            $bukuTabungans->whereHas('siswa', function ($query) use ($selectedKelasId) {
+                $query->where('class_id', $selectedKelasId);
+            });
+        }
 
-    /**
-     * Mengambil data Buku Tabungan berdasarkan Kelas (AJAX).
-     */
-    public function getBukuTabunganByKelas($kelasId)
-{
-    $bukuTabungans = BukuTabungan::whereHas('siswa', function ($query) use ($kelasId) {
-        $query->where('kelas_id', $kelasId);
-    })->with('siswa')->get();
+        $bukuTabungans = $bukuTabungans->with('siswa')->get();
 
-    // Pastikan selalu mengembalikan array, meskipun kosong
-    return response()->json($bukuTabungans);
-}
+        return view('transaksi.create', compact(
+            'kelas',
+            'bukuTabungans',
+            'selectedKelasId',
+            'tahunAktif'
+        ));
+    }
 
-    /**
-     * Menyimpan transaksi baru ke database.
-     */
+    // Simpan transaksi simpanan/cicilan
     public function store(Request $request)
-{
-    // Validasi input
-    $request->validate([
-        'buku_tabungan_id' => 'required|exists:buku_tabungan,id',
-        'simpanan' => 'nullable|numeric|min:0',
-        'cicilan' => 'nullable|numeric|min:0',
-        'penarikan' => 'nullable|numeric|min:0',
-        'keterangan' => 'nullable|string',
-    ]);
-
-    // Pastikan admin mengisi minimal satu dari Simpanan, Cicilan, atau Penarikan
-    if (!$request->has('simpanan') && !$request->has('cicilan') && !$request->has('penarikan')) {
-        return back()->with('error', 'Harus mengisi minimal satu dari Simpanan, Cicilan, atau Penarikan.');
-    }
-
-    // Simpan transaksi
-    if ($request->has('simpanan') && $request->simpanan > 0) {
-        Transaksi::create([
-            'buku_tabungan_id' => $request->buku_tabungan_id,
-            'jenis' => 'simpanan',
-            'jumlah' => $request->simpanan,
-            'tanggal' => now(),
-            'keterangan' => $request->keterangan,
-        ]);
-    }
-
-    if ($request->has('cicilan') && $request->cicilan > 0) {
-        Transaksi::create([
-            'buku_tabungan_id' => $request->buku_tabungan_id,
-            'jenis' => 'cicilan',
-            'jumlah' => $request->cicilan,
-            'tanggal' => now(),
-            'keterangan' => $request->keterangan,
-        ]);
-    }
-
-    if ($request->has('penarikan') && $request->penarikan > 0) {
-        Transaksi::create([
-            'buku_tabungan_id' => $request->buku_tabungan_id,
-            'jenis' => 'penarikan',
-            'jumlah' => $request->penarikan,
-            'tanggal' => now(),
-            'keterangan' => $request->keterangan,
-        ]);
-    }
-
-    return redirect()->route('transaksi.index')->with('success', 'Transaksi berhasil ditambahkan.');
-}
-
-
-    /**
-     * Menampilkan detail transaksi.
-     */
-    public function show(Transaksi $transaksi)
     {
-        return view('transaksi.show', compact('transaksi'));
-    }
-
-    /**
-     * Menampilkan form untuk mengedit transaksi.
-     */
-    public function edit(Transaksi $transaksi)
-    {
-        $bukuTabungans = BukuTabungan::all();
-        return view('transaksi.edit', compact('transaksi', 'bukuTabungans'));
-    }
-
-    /**
-     * Mengupdate transaksi di database.
-     */
-    public function update(Request $request, Transaksi $transaksi)
-    {
-        // Validasi input
         $request->validate([
             'buku_tabungan_id' => 'required|exists:buku_tabungan,id',
-            'jenis' => 'required|in:simpanan,penarikan,cicilan', // Sesuai enum di migrasi
-            'jumlah' => 'required|numeric|min:0',
-            'keterangan' => 'nullable|string',
+            'simpanan' => 'nullable|numeric|min:0',
+            'cicilan' => 'nullable|numeric|min:0',
+            'keterangan' => 'nullable|string|max:255'
         ]);
 
-        // Pertahankan tanggal lama
-        $request->merge(['tanggal' => $transaksi->tanggal]);
+        // Validasi minimal satu transaksi
+        if (empty($request->simpanan) && empty($request->cicilan)) {
+            return back()->with('error', 'Harus mengisi simpanan atau cicilan!');
+        }
 
-        // Update transaksi
-        $transaksi->update($request->all());
+        // Simpan transaksi simpanan
+        if ($request->filled('simpanan')) {
+            Transaksi::create([
+                'buku_tabungan_id' => $request->buku_tabungan_id,
+                'jenis'            => 'simpanan',
+                'jumlah'           => $request->simpanan,
+                'tanggal'          => now(),
+                'keterangan'       => $request->keterangan
+            ]);
+        }
 
-        return redirect()->route('transaksi.index')->with('success', 'Transaksi berhasil diperbarui.');
+        // Simpan transaksi cicilan
+        if ($request->filled('cicilan')) {
+            Transaksi::create([
+                'buku_tabungan_id' => $request->buku_tabungan_id,
+                'jenis'            => 'cicilan',
+                'jumlah'           => $request->cicilan,
+                'tanggal'          => now(),
+                'keterangan'       => $request->keterangan
+            ]);
+        }
+
+        return redirect()->route('transaksi.index')
+            ->with('success', 'Transaksi berhasil disimpan!');
     }
 
-    /**
-     * Menghapus transaksi dari database.
-     */
+    // Form penarikan
+    public function createPenarikan(Request $request)
+    {
+        // Cek tahun ajaran aktif
+        $tahunAktif = TahunAjaran::where('is_active', true)->first();
+
+        if (!$tahunAktif) {
+            return redirect()->route('dashboard')
+                ->with('error', 'Tidak ada tahun ajaran aktif!');
+        }
+
+        $kelas = Kelas::all();
+        $selectedKelasId = $request->input('kelas_id');
+        $bukuTabungans = BukuTabungan::query()
+            ->where('tahun_ajaran_id', $tahunAktif->id) // Filter tahun ajaran aktif
+            ->whereHas('siswa', function ($query) {
+                $query->where('status', 'Aktif'); // Hanya siswa aktif
+            });
+
+        // Filter berdasarkan kelas jika dipilih
+        if ($selectedKelasId) {
+            $bukuTabungans->whereHas('siswa', function ($query) use ($selectedKelasId) {
+                $query->where('class_id', $selectedKelasId);
+            });
+        }
+
+        $bukuTabungans = $bukuTabungans->with('siswa')->get();
+
+        return view('transaksi.penarikan', compact(
+            'kelas',
+            'bukuTabungans',
+            'selectedKelasId',
+            'tahunAktif'
+        ));
+    }
+
+    // Simpan penarikan
+    public function storePenarikan(Request $request)
+    {
+        $request->validate([
+            'buku_tabungan_id'  => 'required|exists:buku_tabungan,id',
+            'jumlah'            => 'required|numeric|min:0',
+            'sumber_penarikan'  => 'required|in:simpanan,cicilan',
+            'keterangan'        => 'nullable|string|max:255'
+        ]);
+
+        // Cek saldo sumber penarikan
+        $totalSumber = Transaksi::where('buku_tabungan_id', $request->buku_tabungan_id)
+            ->where('jenis', $request->sumber_penarikan)
+            ->sum('jumlah');
+
+        // Validasi saldo
+        if ($totalSumber < $request->jumlah) {
+            return back()->with('error', 'Saldo ' . $request->sumber_penarikan . ' tidak mencukupi!');
+        }
+
+        // Simpan transaksi penarikan
+        Transaksi::create([
+            'buku_tabungan_id'  => $request->buku_tabungan_id,
+            'jenis'             => 'penarikan',
+            'jumlah'            => $request->jumlah,
+            'tanggal'           => now(),
+            'sumber_penarikan'  => $request->sumber_penarikan,
+            'keterangan'        => $request->keterangan
+        ]);
+
+        return redirect()->route('transaksi.index')
+            ->with('success', 'Penarikan berhasil dicatat!');
+    }
+
+    // Hapus transaksi
     public function destroy(Transaksi $transaksi)
     {
         $transaksi->delete();
-        return redirect()->route('transaksi.index')->with('success', 'Transaksi berhasil dihapus.');
+        return redirect()->route('transaksi.index')
+            ->with('success', 'Transaksi berhasil dihapus!');
     }
 }

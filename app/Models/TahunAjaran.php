@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -10,8 +11,9 @@ class TahunAjaran extends Model
 
     protected $table = 'tahun_ajaran';
 
+    // Sesuaikan dengan nama kolom di migrasi
     protected $fillable = [
-        'year_name',
+        'year_name', 
         'is_active'
     ];
 
@@ -19,15 +21,25 @@ class TahunAjaran extends Model
         'is_active' => 'boolean'
     ];
 
-    protected static function booted()
+    // Accessor untuk kolom year_name (opsional)
+    public function getNamaAttribute()
     {
-        static::saving(function ($tahunAjaran) {
-            if ($tahunAjaran->is_active) {
-                $tahunAjaran->deactivateOthers();
-            }
-        });
+        return $this->year_name;
     }
 
+    // Mutator untuk kolom year_name (opsional)
+    public function setNamaAttribute($value)
+    {
+        $this->attributes['year_name'] = $value;
+    }
+
+    // Relasi ke BukuTabungan
+    public function bukuTabungans()
+    {
+        return $this->hasMany(BukuTabungan::class);
+    }
+
+    // Method untuk nonaktifkan tahun ajaran lain
     public function deactivateOthers(): void
     {
         if ($this->is_active) {
@@ -38,8 +50,13 @@ class TahunAjaran extends Model
         }
     }
 
-    public function bukuTabungans()
+    // Booted method
+    protected static function booted()
     {
-        return $this->hasMany(BukuTabungan::class);
+        static::saving(function ($tahunAjaran) {
+            if ($tahunAjaran->is_active) {
+                $tahunAjaran->deactivateOthers();
+            }
+        });
     }
 }

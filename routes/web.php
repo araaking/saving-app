@@ -14,40 +14,46 @@ Route::get('/', function () {
     return redirect()->route('login');
 });
 
-// Route untuk dashboard menggunakan DashboardController
+// Dashboard
 Route::get('/dashboard', [DashboardController::class, 'index'])
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
 
 // Route dengan middleware auth
 Route::middleware('auth')->group(function () {
-    // Route untuk profil pengguna
+    // Profile
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    // Route untuk Tahun Ajaran
+    // Tahun Ajaran
     Route::resource('tahun-ajaran', TahunAjaranController::class)->except(['show']);
 
-    // Route untuk Kelas
+    // Kelas
     Route::resource('kelas', KelasController::class);
 
-    // Route untuk Siswa
+    // Siswa
     Route::resource('siswa', SiswaController::class);
 
-    // Route untuk Buku Tabungan
+    // Buku Tabungan
     Route::resource('buku-tabungan', BukuTabunganController::class);
 
-    // Route untuk Transaksi
+    /* ----- Route Transaksi & Penarikan ----- */
+    // Penarikan harus didefinisikan SEBELUM resource
+    Route::prefix('transaksi')->group(function () {
+        Route::get('penarikan', [TransaksiController::class, 'createPenarikan'])
+            ->name('transaksi.penarikan.create');
+        Route::post('penarikan', [TransaksiController::class, 'storePenarikan'])
+            ->name('transaksi.penarikan.store');
+    });
+
+    // Resource Transaksi (setelah penarikan)
     Route::resource('transaksi', TransaksiController::class);
 
     /* ----- Route Khusus AJAX ----- */
-    
-    // Ambil siswa berdasarkan kelas (untuk form buku tabungan)
     Route::get('/kelas/{kelas}/siswa', [SiswaController::class, 'getSiswaByKelas'])
         ->name('kelas.siswa.ajax');
-
-    // Ambil buku tabungan berdasarkan kelas (untuk transaksi)
+        
     Route::get('/get-buku-tabungan-by-kelas/{kelasId}', [TransaksiController::class, 'getBukuTabunganByKelas'])
         ->name('get-buku-tabungan-by-kelas');
 });
