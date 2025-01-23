@@ -17,36 +17,21 @@ class DashboardController extends Controller
         // 1. Ambil tahun ajaran aktif
         $tahunAktif = TahunAjaran::where('is_active', true)->firstOrFail();
 
-        // 2. Setup periode tanggal
-        $endDate = Carbon::today();
-        $startDate = $endDate->copy()->subDays(6);
-        $prevStartDate = $startDate->copy()->subDays(7);
-        $prevEndDate = $startDate->copy()->subDays(1);
+        // 2. Setup periode tanggal untuk 7 hari terakhir
+        $endDate = Carbon::today()->endOfDay();
+        $startDate = Carbon::today()->subDays(6)->startOfDay();
 
         // 3. Hitung metrik utama
         $currentSimpanan = $this->hitungTransaksi('simpanan', $startDate, $endDate, $tahunAktif);
-        $previousSimpanan = $this->hitungTransaksi('simpanan', $prevStartDate, $prevEndDate);
-        
         $currentCicilan = $this->hitungTransaksi('cicilan', $startDate, $endDate, $tahunAktif);
-        $previousCicilan = $this->hitungTransaksi('cicilan', $prevStartDate, $prevEndDate);
+        $currentPendapatan = $this->hitungPendapatan($tahunAktif);
 
-        // 4. Hitung pendapatan
-        $currentPendapatan = $this->hitungPendapatan($tahunAktif, $startDate, $endDate);
-        $previousPendapatan = $this->hitungPendapatan(null, $prevStartDate, $prevEndDate);
-
-        // 5. Total siswa aktif
+        // 4. Total siswa aktif
         $totalSiswa = Siswa::where('status', 'Aktif')
             ->where('academic_year_id', $tahunAktif->id)
             ->count();
 
-        // 6. Persentase perubahan
-        $persentase = [
-            'simpanan' => $this->hitungPersentase($previousSimpanan, $currentSimpanan),
-            'cicilan' => $this->hitungPersentase($previousCicilan, $currentCicilan),
-            'pendapatan' => $this->hitungPersentase($previousPendapatan, $currentPendapatan)
-        ];
-
-        // 7. Data tabel
+        // 5. Data tabel dengan filter
         $dataTable = $this->prosesDataTable($request, $tahunAktif);
 
         return view('dashboard', array_merge([
@@ -54,48 +39,38 @@ class DashboardController extends Controller
             'totalCicilan' => $currentCicilan,
             'totalPendapatan' => $currentPendapatan,
             'totalSiswa' => $totalSiswa,
-            'persentaseSimpanan' => $persentase['simpanan'],
-            'persentaseCicilan' => $persentase['cicilan'],
-            'persentasePendapatan' => $persentase['pendapatan'],
         ], $dataTable));
     }
 
-    private function hitungTransaksi($jenis, $start, $end, $tahunAktif = null)
+    private function hitungTransaksi($jenis, $start, $end, $tahunAktif)
     {
-        $query = Transaksi::where('jenis', $jenis)
-            ->whereBetween('created_at', [$start, $end]);
-
-        if ($tahunAktif) {
-            $query->whereHas('bukuTabungan', function($q) use ($tahunAktif) {
+        return Transaksi::where('jenis', $jenis)
+            ->whereBetween('tanggal', [
+                $start->format('Y-m-d H:i:s'),
+                $end->format('Y-m-d H:i:s')
+            ])
+            ->whereHas('bukuTabungan', function($q) use ($tahunAktif) {
                 $q->where('tahun_ajaran_id', $tahunAktif->id)
                   ->whereHas('siswa', function($q) {
                       $q->where('status', 'Aktif');
                   });
-            });
-        }
-
-        return $query->sum('jumlah');
+            })
+            ->sum('jumlah');
     }
 
-    private function hitungPendapatan($tahunAktif, $start, $end)
+    private function hitungPendapatan($tahunAktif)
     {
-        $query = BukuTabungan::with('transaksis')
+        return BukuTabungan::with(['transaksis' => function($query) {
+                $query->where('jenis', 'simpanan');
+            }])
+            ->where('tahun_ajaran_id', $tahunAktif->id)
             ->whereHas('siswa', function($q) {
                 $q->where('status', 'Aktif');
+            })
+            ->get()
+            ->sum(function($book) {
+                return $book->transaksis->sum('jumlah') * 0.08;
             });
-
-        if ($tahunAktif) {
-            $query->where('tahun_ajaran_id', $tahunAktif->id);
-        }
-
-        return $query->get()
-            ->map(function($book) use ($start, $end) {
-                $simpanan = $book->transaksis
-                    ->where('jenis', 'simpanan')
-                    ->whereBetween('created_at', [$start, $end])
-                    ->sum('jumlah');
-                return $simpanan * 0.08;
-            })->sum();
     }
 
     private function prosesDataTable($request, $tahunAktif)
@@ -134,8 +109,11 @@ class DashboardController extends Controller
             ->groupBy('bukuTabungan.siswa.id')
             ->map(function ($transaksiGroup) {
                 $bukuTabungan = $transaksiGroup->first()->bukuTabungan;
-                $siswa = $bukuTabungan->siswa;
-                $kelas = $siswa->kelas;
+                
+                // Validasi relasi
+                if(!$bukuTabungan || !$bukuTabungan->siswa || !$bukuTabungan->siswa->kelas) {
+                    return null;
+                }
 
                 $totalTabungan = $bukuTabungan->transaksis
                     ->where('jenis', 'simpanan')
@@ -148,13 +126,15 @@ class DashboardController extends Controller
                 return (object)[
                     'id' => $bukuTabungan->id,
                     'nomor_tabungan' => $bukuTabungan->nomor_urut,
-                    'nama' => $siswa->name,
-                    'kelas' => $kelas->name,
+                    'nama' => $bukuTabungan->siswa->name,
+                    'kelas' => $bukuTabungan->siswa->kelas->name,
                     'total_tabungan' => $totalTabungan,
                     'total_cicilan' => $totalCicilan,
                     'total_keseluruhan' => ($totalTabungan * 0.92) - $totalCicilan,
                 ];
-            })->values();
+            })
+            ->filter()
+            ->values();
 
         // Pagination
         $page = $request->get('page', 1);
@@ -169,11 +149,5 @@ class DashboardController extends Controller
                 ['path' => $request->url(), 'query' => $request->query()]
             )
         ];
-    }
-
-    private function hitungPersentase($lama, $baru)
-    {
-        if ($lama == 0) return $baru > 0 ? 100 : 0;
-        return round((($baru - $lama) / $lama) * 100, 2);
     }
 }
