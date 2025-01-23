@@ -24,6 +24,11 @@
         <div class="card-header bg-white d-flex align-items-center">
             <h5 class="card-title mb-0 flex-grow-1">Daftar Siswa</h5>
             <div class="d-flex gap-2">
+                @if($tahunAktif = \App\Models\TahunAjaran::where('is_active', true)->first())
+                    <span class="badge bg-success align-self-center">
+                        Tahun Ajaran Aktif: {{ $tahunAktif->year_name }}
+                    </span>
+                @endif
                 <a href="{{ route('siswa.create') }}" class="btn btn-success btn-sm">
                     <i class="fas fa-plus me-2"></i> Tambah Siswa
                 </a>
@@ -44,25 +49,14 @@
                         </select>
                     </div>
 
-                    <div class="col-md-3">
-                        <select name="tahun_ajaran" class="form-select form-select-sm">
-                            <option value="">Semua Tahun Ajaran</option>
-                            @foreach($allTahunAjaran as $tahun)
-                                <option value="{{ $tahun->id }}" {{ request('tahun_ajaran') == $tahun->id ? 'selected' : '' }}>
-                                    {{ $tahun->year_name }} @if($tahun->is_active) <span class="text-success">(Aktif)</span> @endif
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div class="col-md-4">
+                    <div class="col-md-6">
                         <input type="text" name="search" 
                                class="form-control form-control-sm" 
                                placeholder="Cari berdasarkan nama atau NIS..."
                                value="{{ request('search') }}">
                     </div>
 
-                    <div class="col-md-2">
+                    <div class="col-md-3">
                         <button type="submit" class="btn btn-primary btn-sm w-100">
                             <i class="fas fa-filter me-2"></i> Filter
                         </button>

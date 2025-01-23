@@ -16,6 +16,14 @@ class SiswaController extends Controller
     {
         $query = Siswa::with(['kelas', 'academicYear']);
 
+        // Ambil tahun ajaran aktif
+        $tahunAktif = TahunAjaran::where('is_active', true)->first();
+
+        // Filter otomatis berdasarkan tahun ajaran aktif
+        if ($tahunAktif) {
+            $query->where('academic_year_id', $tahunAktif->id);
+        }
+
         // Filter pencarian nama
         if ($request->filled('search')) {
             $query->where('name', 'like', '%' . $request->search . '%');
@@ -28,18 +36,12 @@ class SiswaController extends Controller
             });
         }
 
-        // Filter tahun ajaran
-        if ($request->filled('tahun_ajaran')) {
-            $query->where('academic_year_id', $request->tahun_ajaran);
-        }
-
-        // Pagination 10 data per halaman + pertahankan parameter filter
+        // Pagination 10 data per halaman
         $siswas = $query->paginate(10)->withQueryString();
 
         $allKelas = Kelas::all();
-        $allTahunAjaran = TahunAjaran::all();
 
-        return view('siswa.index', compact('siswas', 'allKelas', 'allTahunAjaran'));
+        return view('siswa.index', compact('siswas', 'allKelas'));
     }
 
     /**
