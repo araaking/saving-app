@@ -4,80 +4,146 @@
 
 @section('content')
 <div class="container-fluid">
-    <!-- Header / Breadcrumb -->
+    <!-- Header & Breadcrumb -->
     <div class="py-3 d-flex align-items-sm-center flex-sm-row flex-column">
-        
+        <div class="flex-grow-1">
+            <h4 class="fs-18 fw-semibold m-0">Manajemen Data Siswa</h4>
+        </div>
+        <div class="text-end">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb m-0 py-0">
+                    <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Dashboard</a></li>
+                    <li class="breadcrumb-item active">Siswa</li>
+                </ol>
+            </nav>
+        </div>
     </div>
 
-    <!-- Card Header with Filter & Search -->
-    <div class="card overflow-hidden mt-4">
-        <div class="card-header">
-            <div class="d-flex align-items-center">
-                <h5 class="card-title mb-0">Daftar Siswa</h5>
-                <!-- Form Filter dan Search -->
-                <form action="{{ route('siswa.index') }}" method="GET" class="ms-auto d-flex align-items-center gap-2">
-                    <!-- Filter Kelas -->
-                    <select name="kelas" class="form-select form-select-sm">
-                        <option value="">Semua Kelas</option>
-                        @foreach($allKelas as $kelas)
-                            <option value="{{ $kelas->nama }}" {{ request('kelas') == $kelas->nama ? 'selected' : '' }}>
-                                {{ $kelas->nama }}
-                            </option>
-                        @endforeach
-                    </select>
-                    <!-- Search berdasarkan Nama Siswa -->
-                    <input type="text" name="search" class="form-control form-control-sm" placeholder="Cari Siswa..." value="{{ request('search') }}">
-                    <button type="submit" class="btn btn-sm btn-primary">Filter</button>
-                </form>
-                <!-- Button Add Siswa -->
-                <a href="{{ route('siswa.create') }}" class="btn btn-sm btn-success ms-2">Tambah Siswa</a>
+    <!-- Card Utama -->
+    <div class="card border-0 shadow-sm mt-4">
+        <div class="card-header bg-white d-flex align-items-center">
+            <h5 class="card-title mb-0 flex-grow-1">Daftar Siswa</h5>
+            <div class="d-flex gap-2">
+                <a href="{{ route('siswa.create') }}" class="btn btn-success btn-sm">
+                    <i class="fas fa-plus me-2"></i> Tambah Siswa
+                </a>
             </div>
         </div>
-        <div class="card-body mt-0">
-            <div class="table-responsive table-card mt-0">
-                <table class="table table-borderless table-centered align-middle table-nowrap mb-0">
-                    <thead class="text-muted table-light">
+        <div class="card-body">
+            <!-- Filter -->
+            <form action="{{ route('siswa.index') }}" method="GET" class="mb-4">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <select name="kelas" class="form-select form-select-sm">
+                            <option value="">Semua Kelas</option>
+                            @foreach($allKelas as $kelas)
+                                <option value="{{ $kelas->name }}" {{ request('kelas') == $kelas->name ? 'selected' : '' }}>
+                                    {{ $kelas->name }} (Tingkat {{ $kelas->tingkat }})
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="col-md-3">
+                        <select name="tahun_ajaran" class="form-select form-select-sm">
+                            <option value="">Semua Tahun Ajaran</option>
+                            @foreach($allTahunAjaran as $tahun)
+                                <option value="{{ $tahun->id }}" {{ request('tahun_ajaran') == $tahun->id ? 'selected' : '' }}>
+                                    {{ $tahun->year_name }} @if($tahun->is_active) <span class="text-success">(Aktif)</span> @endif
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="col-md-4">
+                        <input type="text" name="search" 
+                               class="form-control form-control-sm" 
+                               placeholder="Cari berdasarkan nama atau NIS..."
+                               value="{{ request('search') }}">
+                    </div>
+
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary btn-sm w-100">
+                            <i class="fas fa-filter me-2"></i> Filter
+                        </button>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Tabel Siswa -->
+            <div class="table-responsive">
+                <table class="table table-hover table-bordered">
+                    <thead class="table-light">
                         <tr>
-                            <th scope="col" class="cursor-pointer">No</th>
-                            <th scope="col" class="cursor-pointer">NIS</th>
-                            <th scope="col" class="cursor-pointer">Nama Siswa</th>
-                            <th scope="col" class="cursor-pointer">Kelas</th>
-                            <th scope="col" class="cursor-pointer">Action</th>
+                            <th width="50">No</th>
+                            <th>NIS</th>
+                            <th>Nama Siswa</th>
+                            <th>Kelas</th>
+                            <th>Tahun Ajaran</th>
+                            <th>Status</th>
+                            <th width="120">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse ($siswas as $siswa)
                             <tr>
-                                <td>{{ $loop->iteration }}</td>
+                                <td>{{ $loop->iteration + ($siswas->currentPage() - 1) * $siswas->perPage() }}</td>
                                 <td>{{ $siswa->nis ?? '-' }}</td>
+                                <td>{{ $siswa->name }}</td>
                                 <td>
-                                    <div class="d-flex align-items-center">
-                                        {{ $siswa->nama }}
-                                    </div>
+                                    <span class="badge bg-secondary">
+                                        {{ $siswa->kelas->name ?? '-' }} (Tingkat {{ $siswa->kelas->tingkat ?? '-' }})
+                                    </span>
                                 </td>
-                                <td>{{ $siswa->kelas->nama }}</td>
+                                <td>{{ $siswa->academicYear->year_name ?? '-' }}</td>
                                 <td>
-                                    <a href="{{ route('siswa.edit', $siswa->id) }}" class="btn btn-icon btn-sm bg-primary-subtle me-1" data-bs-toggle="tooltip" title="Edit">
-                                        <i class="mdi mdi-pencil-outline fs-14 text-primary"></i>
+                                    @if($siswa->status == 'Aktif')
+                                        <span class="badge bg-success">Aktif</span>
+                                    @elseif($siswa->status == 'Lulus')
+                                        <span class="badge bg-primary">Lulus</span>
+                                    @else
+                                        <span class="badge bg-danger">Keluar</span>
+                                    @endif
+                                </td>
+                                <td class="text-center">
+                                    <a href="{{ route('siswa.edit', $siswa->id) }}" 
+                                       class="btn btn-sm btn-outline-warning"
+                                       title="Edit">
+                                        <i class="fas fa-edit"></i>
                                     </a>
-                                    <form action="{{ route('siswa.destroy', $siswa->id) }}" method="POST" class="d-inline">
+                                    <form action="{{ route('siswa.destroy', $siswa->id) }}" 
+                                          method="POST" 
+                                          class="d-inline"
+                                          onsubmit="return confirm('Hapus siswa ini? Data transaksi terkait juga akan terhapus.')">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="btn btn-icon btn-sm bg-danger-subtle" data-bs-toggle="tooltip" title="Delete" onclick="return confirm('Apakah Anda yakin ingin menghapus siswa ini?')">
-                                            <i class="mdi mdi-delete fs-14 text-danger"></i>
+                                        <button type="submit" 
+                                                class="btn btn-sm btn-outline-danger"
+                                                title="Hapus">
+                                            <i class="fas fa-trash"></i>
                                         </button>
                                     </form>
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="4" class="text-center py-3">Tidak ada data siswa.</td>
+                                <td colspan="7" class="text-center py-4">
+                                    <img src="{{ asset('empty-state.svg') }}" width="200" class="mb-3">
+                                    <p class="text-muted">Tidak ada data siswa ditemukan.</p>
+                                </td>
                             </tr>
                         @endforelse
                     </tbody>
                 </table>
-            </div><!-- end table-responsive -->
-        </div><!-- end card-body -->
-    </div><!-- end card -->
-</div><!-- end container-fluid -->
+            </div>
+
+            <!-- Pagination -->
+            @if($siswas->hasPages())
+                <div class="d-flex justify-content-end mt-3">
+                    {{ $siswas->withQueryString()->links() }}
+                </div>
+            @endif
+        </div>
+    </div>
+</div>
 @endsection

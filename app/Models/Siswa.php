@@ -12,14 +12,30 @@ class Siswa extends Model
     protected $table = 'siswa';
 
     protected $fillable = [
-        'nama',
-        'nis',
-        'kelas_id',
+        'name', 
+        'nis', 
+        'class_id', 
+        'academic_year_id', // Tambahkan ini
+        'status', 
+        'category', 
+        'remarks'
     ];
 
+    protected $casts = [
+        'status' => 'string',
+        'category' => 'string'
+    ];
+
+    // Relasi ke Kelas
     public function kelas()
     {
-        return $this->belongsTo(Kelas::class);
+        return $this->belongsTo(Kelas::class, 'class_id');
+    }
+
+    // Relasi ke Tahun Ajaran
+    public function academicYear()
+    {
+        return $this->belongsTo(TahunAjaran::class, 'academic_year_id');
     }
 
     public function bukuTabungans()

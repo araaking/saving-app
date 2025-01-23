@@ -18,10 +18,21 @@
 
     <div class="row">
         <div class="col-lg-12">
-            <!-- Success Message -->
+            <!-- Success Message with Promotion Info -->
             @if(session('success'))
                 <div class="alert alert-success" role="alert">
                     {{ session('success') }}
+                    @if(session('promotion_info'))
+                        <hr>
+                        <div class="mt-2">
+                            <strong>Detail Kenaikan Kelas:</strong>
+                            <ul class="mb-0">
+                                @foreach(session('promotion_info') as $info)
+                                    <li>{{ $info }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
                 </div>
             @endif
 
@@ -30,22 +41,21 @@
                 <!-- Card Header -->
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h4 class="card-title">Daftar Tahun Ajaran</h4>
-                    <a href="{{ route('tahun-ajaran.create') }}" 
-                       class="btn btn-success">
+                    <a href="{{ route('tahun-ajaran.create') }}" class="btn btn-success">
                         <i class="fas fa-plus"></i> Tambah Tahun Ajaran
                     </a>
                 </div>
 
                 <!-- Card Body -->
                 <div class="card-body">
-                    <!-- Data Table -->
+                    <!-- Tabel -->
                     <table class="table table-striped table-bordered">
                         <thead>
                             <tr>
                                 <th width="5%">No</th>
-                    <th>Nama Tahun Ajaran</th>
-                    <th>Status Aktif</th>
-                    <th width="20%">Aksi</th>
+                                <th>Tahun Ajaran</th>
+                                <th>Status</th>
+                                <th width="20%">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -61,23 +71,23 @@
                                         @endif
                                     </td>
                                     <td>
-                                        <!-- Edit Button -->
+                                        <!-- Tombol Edit -->
                                         <a href="{{ route('tahun-ajaran.edit', $tahun->id) }}" 
                                            class="btn btn-warning btn-sm"
-                                           title="Edit Tahun Ajaran">
+                                           title="Edit">
                                             <i class="fas fa-edit"></i>
                                         </a>
 
-                                        <!-- Delete Form -->
+                                        <!-- Tombol Hapus -->
                                         <form action="{{ route('tahun-ajaran.destroy', $tahun->id) }}" 
                                               method="POST" 
                                               class="d-inline"
-                                              onsubmit="return confirm('Apakah Anda yakin ingin menghapus tahun ajaran ini?')">
+                                              onsubmit="return confirm('Hapus tahun ajaran ini akan MENGHAPUS SELURUH SISWA di tahun ini. Yakin?')">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" 
                                                     class="btn btn-danger btn-sm"
-                                                    title="Hapus Tahun Ajaran">
+                                                    title="Hapus">
                                                 <i class="fas fa-trash"></i>
                                             </button>
                                         </form>
@@ -85,9 +95,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="3" class="text-center">
-                                        Tidak ada data tahun ajaran.
-                                    </td>
+                                    <td colspan="4" class="text-center">Tidak ada data tahun ajaran.</td>
                                 </tr>
                             @endforelse
                         </tbody>

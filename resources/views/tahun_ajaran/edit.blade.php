@@ -28,7 +28,6 @@
 
                 <!-- Card Body -->
                 <div class="card-body">
-                    <!-- Form -->
                     <form action="{{ route('tahun-ajaran.update', $tahunAjaran->id) }}" method="POST">
                         @csrf
                         @method('PUT')
@@ -44,9 +43,9 @@
                             </div>
                         @endif
 
-                        <!-- Nama Tahun Ajaran Field -->
+                        <!-- Nama Tahun Ajaran -->
                         <div class="mb-3">
-                            <label for="year_name" class="form-label">Tahun Ajaran</label>
+                            <label for="year_name" class="form-label">Tahun Ajaran <span class="text-danger">*</span></label>
                             <input type="text" 
                                    name="year_name" 
                                    id="year_name" 
@@ -59,27 +58,32 @@
                                    oninput="this.value = this.value.replace(/[^0-9]/g, '').replace(/(\d{4})(\d{4})/, '$1/$2')"
                                    maxlength="9">
                             @error('year_name')
-                                <div class="invalid-feedback">
-                                    {{ $message }}
-                                </div>
+                                <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
 
-                        <!-- Form Actions -->
                         <!-- Status Aktif -->
                         <div class="mb-3">
                             <div class="form-check form-switch">
                                 <input type="hidden" name="is_active" value="0">
                                 <input class="form-check-input" type="checkbox" 
                                        id="is_active" name="is_active" value="1"
-                                       {{ old('is_active', $tahunAjaran->is_active ? 1 : 0) == 1 ? 'checked' : '' }}>
+                                       {{ $tahunAjaran->is_active ? 'checked' : '' }}>
                                 <label class="form-check-label" for="is_active">
                                     Tahun Ajaran Aktif
-                                    <small class="text-muted d-block">(Centang untuk mengaktifkan tahun ini)</small>
+                                    <small class="text-muted d-block">
+                                        (Centang untuk mengaktifkan tahun ini. 
+                                        <span class="text-danger">Jika diaktifkan:</span>
+                                        <ul class="mt-1">
+                                            <li>Siswa Aktif akan naik kelas sesuai tingkat</li>
+                                            <li>Siswa di kelas tertinggi (misal: 6) akan diubah statusnya menjadi Lulus</li>
+                                        </ul>
+                                    </small>
                                 </label>
                             </div>
                         </div>
 
+                        <!-- Tombol Aksi -->
                         <div class="mb-3">
                             <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-save"></i> Update

@@ -1,19 +1,19 @@
 @extends('layouts.layout')
 
-@section('title', 'Tambah Kelas')
+@section('title', 'Edit Kelas')
 
 @section('content')
-
 <div class="container-fluid">
     <div class="row">
         <div class="col-lg-12">
             <div class="card mt-4">
                 <div class="card-header">
-                    <h4 class="card-title">Tambah Kelas</h4>
+                    <h4 class="card-title">Edit Kelas</h4>
                 </div>
                 <div class="card-body">
-                    <form action="{{ route('kelas.store') }}" method="POST">
+                    <form action="{{ route('kelas.update', $kelas->id) }}" method="POST">
                         @csrf
+                        @method('PUT')
 
                         <!-- Error Messages -->
                         @if($errors->any())
@@ -31,8 +31,8 @@
                             <label for="name" class="form-label">Nama Kelas <span class="text-danger">*</span></label>
                             <input type="text" id="name" name="name" 
                                    class="form-control @error('name') is-invalid @enderror" 
-                                   placeholder="Contoh: A (tanpa tingkat)" 
-                                   value="{{ old('name') }}"
+                                   placeholder="Contoh: A" 
+                                   value="{{ old('name', $kelas->name) }}"
                                    required>
                             @error('name')
                                 <div class="invalid-feedback">{{ $message }}</div>
@@ -46,8 +46,7 @@
                                    id="tingkat" 
                                    name="tingkat" 
                                    class="form-control @error('tingkat') is-invalid @enderror" 
-                                   placeholder="Contoh: 1"
-                                   value="{{ old('tingkat') }}"
+                                   value="{{ old('tingkat', $kelas->tingkat) }}"
                                    min="1"
                                    required>
                             @error('tingkat')
@@ -61,10 +60,13 @@
                             <select id="next_class_id" name="next_class_id" 
                                     class="form-select @error('next_class_id') is-invalid @enderror">
                                 <option value="">Tidak Ada</option>
-                                @foreach ($kelas->sortBy('tingkat') as $kelasOption)
-                                    <option value="{{ $kelasOption->id }}" {{ old('next_class_id') == $kelasOption->id ? 'selected' : '' }}>
-                                        {{ $kelasOption->name }} (Tingkat {{ $kelasOption->tingkat }})
-                                    </option>
+                                @foreach ($allKelas as $kelasOption)
+                                    @if($kelasOption->tingkat > $kelas->tingkat)
+                                        <option value="{{ $kelasOption->id }}" 
+                                            {{ old('next_class_id', $kelas->next_class_id) == $kelasOption->id ? 'selected' : '' }}>
+                                            {{ $kelasOption->name }} (Tingkat {{ $kelasOption->tingkat }})
+                                        </option>
+                                    @endif
                                 @endforeach
                             </select>
                             @error('next_class_id')
@@ -74,7 +76,7 @@
 
                         <div class="mb-3">
                             <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-save"></i> Simpan
+                                <i class="fas fa-save"></i> Update
                             </button>
                             <a href="{{ route('kelas.index') }}" class="btn btn-secondary">
                                 <i class="fas fa-arrow-left"></i> Kembali

@@ -1,4 +1,5 @@
 <?php
+// File: database/migrations/xxxx_xx_xx_create_siswa_table.php
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -10,9 +11,13 @@ class CreateSiswaTable extends Migration
     {
         Schema::create('siswa', function (Blueprint $table) {
             $table->id();
-            $table->string('nama');
+            $table->string('name');
             $table->string('nis', 20)->unique()->nullable();
-            $table->foreignId('kelas_id')->constrained('kelas')->onDelete('cascade');
+            $table->foreignId('class_id')->constrained('kelas')->onDelete('cascade');
+            $table->foreignId('academic_year_id')->constrained('tahun_ajaran')->onDelete('cascade');
+            $table->enum('status', ['Aktif', 'Lulus', 'Keluar'])->default('Aktif');
+            $table->enum('category', ['Anak Guru', 'Anak Yatim', 'Kakak Beradik', 'Anak Normal']);
+            $table->text('remarks')->nullable();
             $table->timestamps();
         });
     }
