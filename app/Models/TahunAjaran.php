@@ -50,6 +50,11 @@ class TahunAjaran extends Model
         }
     }
 
+    public static function getActive()
+    {
+        return self::where('is_active', true)->firstOrFail();
+    }
+
     // Booted method
     protected static function booted()
     {

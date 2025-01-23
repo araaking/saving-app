@@ -7,6 +7,7 @@ use App\Http\Controllers\SiswaController;
 use App\Http\Controllers\BukuTabunganController;
 use App\Http\Controllers\TransaksiController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\BiayaSekolahController;
 use Illuminate\Support\Facades\Route;
 
 // Route utama
@@ -47,6 +48,8 @@ Route::middleware('auth')->group(function () {
             ->name('transaksi.penarikan.store');
     });
 
+    Route::resource('biaya-sekolah', BiayaSekolahController::class);
+
     // Resource Transaksi (setelah penarikan)
     Route::resource('transaksi', TransaksiController::class);
 
@@ -56,6 +59,8 @@ Route::middleware('auth')->group(function () {
         
     Route::get('/get-buku-tabungan-by-kelas/{kelasId}', [TransaksiController::class, 'getBukuTabunganByKelas'])
         ->name('get-buku-tabungan-by-kelas');
+    
+    
 });
 
 require __DIR__.'/auth.php';

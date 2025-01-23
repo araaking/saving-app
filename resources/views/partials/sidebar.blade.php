@@ -79,6 +79,15 @@
                         <span>Buku Tabungan</span>
                     </a>
                 </li>
+
+                <!-- Tambahan Menu Biaya Sekolah -->
+                <li>
+                    <a href="{{ route('biaya-sekolah.index') }}" class="tp-link">
+                        <i data-feather="credit-card"></i>
+                        <span>Biaya Sekolah</span>
+                    </a>
+                </li>
+                
             </ul>
             
             <div class="clearfix"></div>
