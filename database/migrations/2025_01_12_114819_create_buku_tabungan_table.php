@@ -10,10 +10,27 @@ class CreateBukuTabunganTable extends Migration
     {
         Schema::create('buku_tabungan', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('siswa_id')->constrained('siswa')->onDelete('cascade');
-            $table->foreignId('tahun_ajaran_id')->constrained('tahun_ajaran')->onDelete('cascade');
+            
+            // Foreign keys
+            $table->foreignId('siswa_id')
+                ->constrained('siswa')
+                ->onDelete('cascade');
+            
+            $table->foreignId('tahun_ajaran_id')
+                ->constrained('tahun_ajaran')
+                ->onDelete('cascade');
+            
+            // Tambahan kolom class_id
+            $table->foreignId('class_id')
+                ->constrained('kelas')
+                ->onDelete('cascade');
+            
+            // Nomor urut (unik per kelas + tahun ajaran)
             $table->integer('nomor_urut');
-            $table->unique(['tahun_ajaran_id', 'siswa_id', 'nomor_urut']);
+            
+            // Unique constraint baru
+            $table->unique(['class_id', 'tahun_ajaran_id', 'nomor_urut']);
+            
             $table->timestamps();
         });
     }

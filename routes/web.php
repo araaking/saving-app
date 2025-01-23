@@ -41,10 +41,15 @@ Route::middleware('auth')->group(function () {
     // Route untuk Transaksi
     Route::resource('transaksi', TransaksiController::class);
 
-    // Route AJAX untuk mendapatkan Buku Tabungan berdasarkan Kelas
-    Route::get('/get-buku-tabungan-by-kelas/{kelasId}', [TransaksiController::class, 'getBukuTabunganByKelas'])
-    ->name('get-buku-tabungan-by-kelas');
+    /* ----- Route Khusus AJAX ----- */
+    
+    // Ambil siswa berdasarkan kelas (untuk form buku tabungan)
+    Route::get('/kelas/{kelas}/siswa', [SiswaController::class, 'getSiswaByKelas'])
+        ->name('kelas.siswa.ajax');
 
+    // Ambil buku tabungan berdasarkan kelas (untuk transaksi)
+    Route::get('/get-buku-tabungan-by-kelas/{kelasId}', [TransaksiController::class, 'getBukuTabunganByKelas'])
+        ->name('get-buku-tabungan-by-kelas');
 });
 
 require __DIR__.'/auth.php';

@@ -9,33 +9,87 @@
             <h4 class="card-title">Tambah Buku Tabungan</h4>
         </div>
         <div class="card-body">
-            <form action="{{ route('buku-tabungan.store') }}" method="POST">
-                @csrf
+            <!-- Form Filter Kelas -->
+            <form action="{{ route('buku-tabungan.create') }}" method="GET">
                 <div class="mb-3">
-                    <label for="siswa_id" class="form-label">Siswa:</label>
-                    <select id="siswa_id" name="siswa_id" class="form-select" required>
-                        @foreach($siswas as $siswa)
-                            <option value="{{ $siswa->id }}">{{ $siswa->nama }}</option>
+                    <label for="kelas_id" class="form-label">Kelas <span class="text-danger">*</span></label>
+                    <select id="kelas_id" name="kelas_id" class="form-select @error('kelas_id') is-invalid @enderror" required>
+                        <option value="">- Pilih Kelas -</option>
+                        @foreach($kelasList as $kelas)
+                            <option 
+                                value="{{ $kelas->id }}" 
+                                {{ $selectedKelasId == $kelas->id ? 'selected' : '' }}>
+                                {{ $kelas->name }} (Tingkat {{ $kelas->tingkat }})
+                            </option>
                         @endforeach
                     </select>
+                    @error('kelas_id')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
                 </div>
-                <div class="mb-3">
-                    <label for="tahun_ajaran_id" class="form-label">Tahun Ajaran:</label>
-                    <select id="tahun_ajaran_id" name="tahun_ajaran_id" class="form-select" required>
-                        @foreach($tahunAjarans as $tahunAjaran)
-                            <option value="{{ $tahunAjaran->id }}">{{ $tahunAjaran->nama }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="mb-3">
-                    <label for="nomor_urut" class="form-label">Nomor Urut:</label>
-                    <input type="number" id="nomor_urut" name="nomor_urut" class="form-control" required>
-                </div>
-                <div class="mb-3">
-                    <button type="submit" class="btn btn-primary">Simpan</button>
-                    <a href="{{ route('buku-tabungan.index') }}" class="btn btn-secondary">Kembali</a>
-                </div>
+                <button type="submit" class="btn btn-info mb-4">Filter Siswa</button>
             </form>
+
+            <!-- Form Utama (Muncul setelah kelas dipilih) -->
+            @if($selectedKelasId)
+                <form action="{{ route('buku-tabungan.store') }}" method="POST">
+                    @csrf
+                    <input type="hidden" name="kelas_id" value="{{ $selectedKelasId }}">
+
+                    <!-- Pilih Siswa -->
+                    <div class="mb-3">
+                        <label for="siswa_id" class="form-label">Siswa <span class="text-danger">*</span></label>
+                        <select id="siswa_id" name="siswa_id" 
+                            class="form-select @error('siswa_id') is-invalid @enderror" 
+                            required>
+                            <option value="">- Pilih Siswa -</option>
+                            @foreach($siswas as $siswa)
+                                <option 
+                                    value="{{ $siswa->id }}" 
+                                    {{ old('siswa_id') == $siswa->id ? 'selected' : '' }}>
+                                    {{ $siswa->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('siswa_id')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    <!-- Tahun Ajaran (Auto) -->
+                    <div class="mb-3">
+                        <label class="form-label">Tahun Ajaran</label>
+                        <input type="text" class="form-control" 
+                            value="{{ $tahunAktif->year_name }}" 
+                            readonly>
+                        <input type="hidden" name="tahun_ajaran_id" value="{{ $tahunAktif->id }}">
+                    </div>
+
+                    <!-- Nomor Urut -->
+                    <div class="mb-3">
+                        <label for="nomor_urut" class="form-label">Nomor Buku <span class="text-danger">*</span></label>
+                        <input type="number" id="nomor_urut" name="nomor_urut" 
+                            class="form-control @error('nomor_urut') is-invalid @enderror" 
+                            value="{{ old('nomor_urut') }}" 
+                            required
+                            placeholder="Contoh: 1">
+                        @error('nomor_urut')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                        <small class="text-muted">Harus unik untuk kelas dan tahun ajaran ini</small>
+                    </div>
+
+                    <!-- Tombol -->
+                    <div class="mb-3">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="mdi mdi-content-save me-1"></i> Simpan
+                        </button>
+                        <a href="{{ route('buku-tabungan.index') }}" class="btn btn-secondary">
+                            <i class="mdi mdi-arrow-left me-1"></i> Kembali
+                        </a>
+                    </div>
+                </form>
+            @endif
         </div>
     </div>
 </div>
