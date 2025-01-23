@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\TahunAjaran;
 use App\Models\Siswa;
-use App\Models\Kelas; // Pastikan model Kelas di-import
+use App\Models\Kelas;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
@@ -34,22 +34,22 @@ class TahunAjaranController extends Controller
     {
         $validated = $request->validate([
             'year_name' => 'required|string|max:255|unique:tahun_ajaran',
-            'is_active' => 'required|boolean'
         ]);
 
-        // Simpan tahun ajaran aktif sebelumnya
+        // Simpan tahun ajaran aktif sebelumnya SEBELUM dinonaktifkan
         $tahunSebelumnya = TahunAjaran::where('is_active', true)->first();
 
-        // Nonaktifkan tahun ajaran lain jika tahun ini diaktifkan
-        if ($request->is_active) {
-            TahunAjaran::where('is_active', true)->update(['is_active' => false]);
-        }
+        // Nonaktifkan semua tahun ajaran
+        TahunAjaran::query()->update(['is_active' => false]);
 
-        // Buat tahun ajaran baru
-        $tahunAjaran = TahunAjaran::create($validated);
+        // Buat tahun ajaran baru dengan status aktif
+        $tahunAjaran = TahunAjaran::create([
+            'year_name' => $validated['year_name'],
+            'is_active' => true
+        ]);
 
         // Proses kenaikan kelas jika ada tahun sebelumnya
-        if ($tahunAjaran->is_active && $tahunSebelumnya) {
+        if ($tahunSebelumnya) {
             $this->processClassPromotion($tahunAjaran, $tahunSebelumnya);
         }
 
@@ -73,25 +73,10 @@ class TahunAjaranController extends Controller
     {
         $validated = $request->validate([
             'year_name' => 'required|string|max:255|unique:tahun_ajaran,year_name,' . $id,
-            'is_active' => 'required|boolean'
         ]);
 
         $tahunAjaran = TahunAjaran::findOrFail($id);
-
-        // Simpan tahun ajaran aktif sebelumnya
-        $tahunSebelumnya = TahunAjaran::where('is_active', true)->first();
-
-        // Nonaktifkan tahun ajaran lain jika diaktifkan
-        if ($request->is_active) {
-            TahunAjaran::where('is_active', true)->update(['is_active' => false]);
-        }
-
-        $tahunAjaran->update($validated);
-
-        // Proses kenaikan kelas jika ada tahun sebelumnya
-        if ($tahunAjaran->is_active && $tahunSebelumnya) {
-            $this->processClassPromotion($tahunAjaran, $tahunSebelumnya);
-        }
+        $tahunAjaran->update($validated); // Hanya update year_name
 
         return redirect()->route('tahun-ajaran.index')
             ->with('success', 'Tahun ajaran berhasil diperbarui.');

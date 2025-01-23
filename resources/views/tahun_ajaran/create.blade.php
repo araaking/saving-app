@@ -61,25 +61,15 @@
                             @enderror
                         </div>
 
-                        <!-- Status Aktif -->
-                        <div class="mb-3">
-                            <div class="form-check form-switch">
-                                <input type="hidden" name="is_active" value="0">
-                                <input class="form-check-input" type="checkbox" 
-                                       id="is_active" name="is_active" value="1"
-                                       {{ old('is_active') ? 'checked' : '' }}>
-                                <label class="form-check-label" for="is_active">
-                                    Jadikan Tahun Ajaran Aktif
-                                    <small class="text-muted d-block">
-                                        (Otomatis menonaktifkan tahun ajaran sebelumnya. 
-                                        <span class="text-danger">Jika diaktifkan:</span>
-                                        <ul class="mt-1">
-                                            <li>Siswa Aktif akan naik kelas sesuai tingkat</li>
-                                            <li>Siswa di kelas tertinggi (misal: 6) akan diubah statusnya menjadi Lulus</li>
-                                        </ul>
-                                    </small>
-                                </label>
-                            </div>
+                        <!-- Informasi Aktivasi Otomatis -->
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Tahun ajaran baru akan otomatis:
+                            <ul class="mt-2 mb-0">
+                                <li>Menjadi tahun aktif</li>
+                                <li>Menonaktifkan tahun ajaran sebelumnya</li>
+                                <li>Memproses kenaikan kelas untuk siswa aktif</li>
+                            </ul>
                         </div>
 
                         <!-- Tombol Aksi -->

@@ -18,7 +18,7 @@
 
     <div class="row">
         <div class="col-lg-12">
-            <!-- Success Message with Promotion Info -->
+            <!-- Success Message -->
             @if(session('success'))
                 <div class="alert alert-success" role="alert">
                     {{ session('success') }}
@@ -36,9 +36,18 @@
                 </div>
             @endif
 
+            <!-- System Warning -->
+            <div class="alert alert-warning mb-4">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                Sistem otomatis:
+                <ul class="mt-2 mb-0">
+                    <li>Tahun ajaran baru akan menggantikan status aktif tahun sebelumnya</li>
+                    <li>Tahun aktif tidak bisa dinonaktifkan secara manual</li>
+                </ul>
+            </div>
+
             <!-- Main Card -->
             <div class="card">
-                <!-- Card Header -->
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h4 class="card-title">Daftar Tahun Ajaran</h4>
                     <a href="{{ route('tahun-ajaran.create') }}" class="btn btn-success">
@@ -46,16 +55,15 @@
                     </a>
                 </div>
 
-                <!-- Card Body -->
                 <div class="card-body">
-                    <!-- Tabel -->
+                    <!-- Table -->
                     <table class="table table-striped table-bordered">
                         <thead>
                             <tr>
                                 <th width="5%">No</th>
                                 <th>Tahun Ajaran</th>
                                 <th>Status</th>
-                                <th width="20%">Aksi</th>
+                                <th width="25%">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -71,14 +79,21 @@
                                         @endif
                                     </td>
                                     <td>
-                                        <!-- Tombol Edit -->
-                                        <a href="{{ route('tahun-ajaran.edit', $tahun->id) }}" 
-                                           class="btn btn-warning btn-sm"
-                                           title="Edit">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
+                                        <!-- Edit Button -->
+                                        @if($tahun->is_active)
+                                            <button class="btn btn-warning btn-sm" disabled
+                                                    title="Tahun aktif tidak dapat diedit">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                        @else
+                                            <a href="{{ route('tahun-ajaran.edit', $tahun->id) }}" 
+                                               class="btn btn-warning btn-sm"
+                                               title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                        @endif
 
-                                        <!-- Tombol Hapus -->
+                                        <!-- Delete Button -->
                                         <form action="{{ route('tahun-ajaran.destroy', $tahun->id) }}" 
                                               method="POST" 
                                               class="d-inline"
@@ -87,7 +102,8 @@
                                             @method('DELETE')
                                             <button type="submit" 
                                                     class="btn btn-danger btn-sm"
-                                                    title="Hapus">
+                                                    title="Hapus"
+                                                    {{ $tahun->is_active ? 'disabled' : '' }}>
                                                 <i class="fas fa-trash"></i>
                                             </button>
                                         </form>
