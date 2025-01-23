@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Transaksi;
 use App\Models\BukuTabungan;
 use App\Models\Siswa;
+use App\Models\TahunAjaran;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Carbon\Carbon;
@@ -13,167 +14,166 @@ class DashboardController extends Controller
 {
     public function index(Request $request)
     {
-        // =========================
-        // 1. TANGGAL DAN PERIODE
-        // =========================
+        // 1. Ambil tahun ajaran aktif
+        $tahunAktif = TahunAjaran::where('is_active', true)->firstOrFail();
 
-        // Tanggal hari ini dan 7 hari terakhir
+        // 2. Setup periode tanggal
         $endDate = Carbon::today();
-        $startDate = $endDate->copy()->subDays(6); // 7 hari terakhir
-        $prevStartDate = $startDate->copy()->subDays(7); // 7 hari sebelumnya
+        $startDate = $endDate->copy()->subDays(6);
+        $prevStartDate = $startDate->copy()->subDays(7);
         $prevEndDate = $startDate->copy()->subDays(1);
 
-        // =========================
-        // 2. HITUNG METRIK DASHBOARD
-        // =========================
+        // 3. Hitung metrik utama
+        $currentSimpanan = $this->hitungTransaksi('simpanan', $startDate, $endDate, $tahunAktif);
+        $previousSimpanan = $this->hitungTransaksi('simpanan', $prevStartDate, $prevEndDate);
+        
+        $currentCicilan = $this->hitungTransaksi('cicilan', $startDate, $endDate, $tahunAktif);
+        $previousCicilan = $this->hitungTransaksi('cicilan', $prevStartDate, $prevEndDate);
 
-        // Total simpanan 7 hari terakhir
-        $currentSimpanan = Transaksi::where('jenis', 'simpanan')
-            ->whereBetween('created_at', [$startDate, $endDate])
-            ->sum('jumlah');
+        // 4. Hitung pendapatan
+        $currentPendapatan = $this->hitungPendapatan($tahunAktif, $startDate, $endDate);
+        $previousPendapatan = $this->hitungPendapatan(null, $prevStartDate, $prevEndDate);
 
-        // Total simpanan 7 hari sebelumnya
-        $previousSimpanan = Transaksi::where('jenis', 'simpanan')
-            ->whereBetween('created_at', [$prevStartDate, $prevEndDate])
-            ->sum('jumlah');
+        // 5. Total siswa aktif
+        $totalSiswa = Siswa::where('status', 'Aktif')
+            ->where('academic_year_id', $tahunAktif->id)
+            ->count();
 
-        // Total cicilan 7 hari terakhir
-        $currentCicilan = Transaksi::where('jenis', 'cicilan')
-            ->whereBetween('created_at', [$startDate, $endDate])
-            ->sum('jumlah');
+        // 6. Persentase perubahan
+        $persentase = [
+            'simpanan' => $this->hitungPersentase($previousSimpanan, $currentSimpanan),
+            'cicilan' => $this->hitungPersentase($previousCicilan, $currentCicilan),
+            'pendapatan' => $this->hitungPersentase($previousPendapatan, $currentPendapatan)
+        ];
 
-        // Total cicilan 7 hari sebelumnya
-        $previousCicilan = Transaksi::where('jenis', 'cicilan')
-            ->whereBetween('created_at', [$prevStartDate, $prevEndDate])
-            ->sum('jumlah');
+        // 7. Data tabel
+        $dataTable = $this->prosesDataTable($request, $tahunAktif);
 
-        // Total pendapatan (8% fee dari total simpanan setiap siswa)
-        $currentPendapatan = BukuTabungan::with('transaksis')
-            ->get()
-            ->map(function($book) use ($startDate, $endDate) {
-                $simpananPerBook = $book->transaksis
-                    ->where('jenis', 'simpanan')
-                    ->whereBetween('created_at', [$startDate, $endDate])
-                    ->sum('jumlah');
-                return $simpananPerBook * 0.08;
-            })->sum();
-
-        $previousPendapatan = BukuTabungan::with('transaksis')
-            ->get()
-            ->map(function($book) use ($prevStartDate, $prevEndDate) {
-                $simpananPerBook = $book->transaksis
-                    ->where('jenis', 'simpanan')
-                    ->whereBetween('created_at', [$prevStartDate, $prevEndDate])
-                    ->sum('jumlah');
-                return $simpananPerBook * 0.08;
-            })->sum();
-
-        // Total siswa seluruh sekolah
-        $totalSiswa = Siswa::count();
-
-        // =========================
-        // 3. HITUNG PERSENTASE PERUBAHAN
-        // =========================
-
-        $persentaseSimpanan = $previousSimpanan > 0
-            ? (($currentSimpanan - $previousSimpanan) / $previousSimpanan) * 100
-            : 0;
-
-        $persentaseCicilan = $previousCicilan > 0
-            ? (($currentCicilan - $previousCicilan) / $previousCicilan) * 100
-            : 0;
-
-        $persentasePendapatan = $previousPendapatan > 0
-            ? (($currentPendapatan - $previousPendapatan) / $previousPendapatan) * 100
-            : 0;
-
-        // =========================
-        // 4. PERSIAPAN DATA TABLE
-        // =========================
-
-        $kelasFilter = $request->input('kelas');
-        $search = $request->input('search');
-
-        $query = Transaksi::with(['bukuTabungan.transaksis', 'bukuTabungan.siswa.kelas']);
-
-        if ($kelasFilter) {
-            $query->whereHas('bukuTabungan.siswa.kelas', function ($q) use ($kelasFilter) {
-                $q->where('nama', $kelasFilter);
-            });
-        }
-
-        if ($search) {
-            $query->where(function ($q) use ($search) {
-                $q->whereHas('bukuTabungan.siswa', function ($q2) use ($search) {
-                    $q2->where('nama', 'like', '%' . $search . '%');
-                })
-                ->orWhereHas('bukuTabungan', function ($q3) use ($search) {
-                    $q3->where('nomor_urut', 'like', '%' . $search . '%');
-                });
-            });
-        }
-
-        $transaksiAll = $query->get()->filter(function ($transaksi) {
-            return $transaksi->bukuTabungan &&
-                   $transaksi->bukuTabungan->siswa &&
-                   $transaksi->bukuTabungan->siswa->kelas &&
-                   $transaksi->bukuTabungan->transaksis;
-        });
-
-        $grouped = $transaksiAll->groupBy(function ($transaksi) {
-            return $transaksi->bukuTabungan->siswa->id;
-        });
-
-        $results = $grouped->map(function ($transaksiGroup) {
-            $transaksi = $transaksiGroup->first();
-
-            $totalTabungan = $transaksi->bukuTabungan->transaksis
-                ->where('jenis', 'simpanan')
-                ->sum('jumlah');
-
-            $totalCicilan = $transaksi->bukuTabungan->transaksis
-                ->where('jenis', 'cicilan')
-                ->sum('jumlah');
-
-            $totalKeseluruhan = ($totalTabungan - ($totalTabungan * 0.08)) - $totalCicilan;
-
-            return (object)[
-                'id' => $transaksi->id,
-                'nomor_tabungan' => $transaksi->bukuTabungan->nomor_urut,
-                'nama' => $transaksi->bukuTabungan->siswa->nama,
-                'kelas' => $transaksi->bukuTabungan->siswa->kelas->nama,
-                'total_tabungan' => $totalTabungan,
-                'total_cicilan' => $totalCicilan,
-                'total_keseluruhan' => $totalKeseluruhan,
-            ];
-        })->values();
-
-        $page = $request->get('page', 1);
-        $perPage = 10;
-        $total = $results->count();
-        $currentItems = $results->slice(($page - 1) * $perPage, $perPage)->values();
-
-        $paginatedResults = new LengthAwarePaginator(
-            $currentItems,
-            $total,
-            $perPage,
-            $page,
-            ['path' => $request->url(), 'query' => $request->query()]
-        );
-
-        // =========================
-        // 5. KIRIM SEMUA DATA KE VIEW
-        // =========================
-
-        return view('dashboard', [
-            'transaksis' => $paginatedResults,
+        return view('dashboard', array_merge([
             'totalSimpanan' => $currentSimpanan,
             'totalCicilan' => $currentCicilan,
             'totalPendapatan' => $currentPendapatan,
             'totalSiswa' => $totalSiswa,
-            'persentaseSimpanan' => $persentaseSimpanan,
-            'persentaseCicilan' => $persentaseCicilan,
-            'persentasePendapatan' => $persentasePendapatan,
-        ]);
+            'persentaseSimpanan' => $persentase['simpanan'],
+            'persentaseCicilan' => $persentase['cicilan'],
+            'persentasePendapatan' => $persentase['pendapatan'],
+        ], $dataTable));
+    }
+
+    private function hitungTransaksi($jenis, $start, $end, $tahunAktif = null)
+    {
+        $query = Transaksi::where('jenis', $jenis)
+            ->whereBetween('created_at', [$start, $end]);
+
+        if ($tahunAktif) {
+            $query->whereHas('bukuTabungan', function($q) use ($tahunAktif) {
+                $q->where('tahun_ajaran_id', $tahunAktif->id)
+                  ->whereHas('siswa', function($q) {
+                      $q->where('status', 'Aktif');
+                  });
+            });
+        }
+
+        return $query->sum('jumlah');
+    }
+
+    private function hitungPendapatan($tahunAktif, $start, $end)
+    {
+        $query = BukuTabungan::with('transaksis')
+            ->whereHas('siswa', function($q) {
+                $q->where('status', 'Aktif');
+            });
+
+        if ($tahunAktif) {
+            $query->where('tahun_ajaran_id', $tahunAktif->id);
+        }
+
+        return $query->get()
+            ->map(function($book) use ($start, $end) {
+                $simpanan = $book->transaksis
+                    ->where('jenis', 'simpanan')
+                    ->whereBetween('created_at', [$start, $end])
+                    ->sum('jumlah');
+                return $simpanan * 0.08;
+            })->sum();
+    }
+
+    private function prosesDataTable($request, $tahunAktif)
+    {
+        $query = Transaksi::with([
+                'bukuTabungan.siswa.kelas',
+                'bukuTabungan.transaksis'
+            ])
+            ->whereHas('bukuTabungan', function($q) use ($tahunAktif) {
+                $q->where('tahun_ajaran_id', $tahunAktif->id)
+                  ->whereHas('siswa', function($q) {
+                      $q->where('status', 'Aktif');
+                  });
+            });
+
+        // Filter kelas
+        if ($request->filled('kelas')) {
+            $query->whereHas('bukuTabungan.siswa.kelas', function($q) use ($request) {
+                $q->where('name', $request->kelas);
+            });
+        }
+
+        // Filter pencarian
+        if ($request->filled('search')) {
+            $query->where(function($q) use ($request) {
+                $q->whereHas('bukuTabungan.siswa', function($q) use ($request) {
+                    $q->where('name', 'like', '%'.$request->search.'%');
+                })->orWhereHas('bukuTabungan', function($q) use ($request) {
+                    $q->where('nomor_urut', 'like', '%'.$request->search.'%');
+                });
+            });
+        }
+
+        // Proses data
+        $transaksiAll = $query->get()
+            ->groupBy('bukuTabungan.siswa.id')
+            ->map(function ($transaksiGroup) {
+                $bukuTabungan = $transaksiGroup->first()->bukuTabungan;
+                $siswa = $bukuTabungan->siswa;
+                $kelas = $siswa->kelas;
+
+                $totalTabungan = $bukuTabungan->transaksis
+                    ->where('jenis', 'simpanan')
+                    ->sum('jumlah');
+
+                $totalCicilan = $bukuTabungan->transaksis
+                    ->where('jenis', 'cicilan')
+                    ->sum('jumlah');
+
+                return (object)[
+                    'id' => $bukuTabungan->id,
+                    'nomor_tabungan' => $bukuTabungan->nomor_urut,
+                    'nama' => $siswa->name,
+                    'kelas' => $kelas->name,
+                    'total_tabungan' => $totalTabungan,
+                    'total_cicilan' => $totalCicilan,
+                    'total_keseluruhan' => ($totalTabungan * 0.92) - $totalCicilan,
+                ];
+            })->values();
+
+        // Pagination
+        $page = $request->get('page', 1);
+        $perPage = 10;
+        
+        return [
+            'transaksis' => new LengthAwarePaginator(
+                $transaksiAll->forPage($page, $perPage),
+                $transaksiAll->count(),
+                $perPage,
+                $page,
+                ['path' => $request->url(), 'query' => $request->query()]
+            )
+        ];
+    }
+
+    private function hitungPersentase($lama, $baru)
+    {
+        if ($lama == 0) return $baru > 0 ? 100 : 0;
+        return round((($baru - $lama) / $lama) * 100, 2);
     }
 }
