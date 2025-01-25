@@ -61,8 +61,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/get-buku-tabungan-by-kelas/{kelasId}', [TransaksiController::class, 'getBukuTabunganByKelas'])
         ->name('get-buku-tabungan-by-kelas');
     
-    Route::resource('pembayaran', PembayaranController::class);
+    Route::resource('pembayaran', PembayaranController::class)->except(['show']);
     
+    Route::get('/pembayaran/export', [PembayaranController::class, 'exportIndex'])->name('pembayaran.export.index');
+    Route::get('/pembayaran/export/{siswa}', [PembayaranController::class, 'generatePDF'])->name('pembayaran.export.pdf');
+
+
 });
 
 require __DIR__.'/auth.php';

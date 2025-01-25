@@ -42,4 +42,10 @@ class Siswa extends Model
     {
         return $this->hasMany(BukuTabungan::class);
     }
+
+    // Siswa.php
+public function pembayarans()
+{
+    return $this->hasMany(Pembayaran::class, 'siswa_id');
+}
 }

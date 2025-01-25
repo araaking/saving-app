@@ -12,6 +12,7 @@ use App\Models\Transaksi;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class PembayaranController extends Controller
 {
@@ -182,5 +183,187 @@ class PembayaranController extends Controller
             'Kakak Beradik' => 0.10,
             default => 0.08,
         };
+    }
+
+    // Tambahkan method baru untuk export PDF
+    public function exportIndex(Request $request)
+    {
+        $kelasList = Kelas::all();
+        $selectedKelasId = $request->input('kelas_id');
+        
+        $query = Siswa::with(['kelas', 'bukuTabungans'])
+            ->whereHas('bukuTabungans', function($q) {
+                $q->whereHas('tahunAjaran', function($q) {
+                    $q->where('is_active', true);
+                });
+            });
+
+        if ($selectedKelasId) {
+            $query->where('class_id', $selectedKelasId);
+        }
+
+        $siswas = $query->paginate(20);
+
+        return view('pembayaran.export-index', compact(
+            'kelasList',
+            'siswas',
+            'selectedKelasId'
+        ));
+    }
+
+    public function generatePDF(Siswa $siswa, Request $request)
+    {
+        $tahunAktif = TahunAjaran::getActive();
+        
+        // Validasi buku tabungan
+        $bukuTabungan = $siswa->bukuTabungans()
+            ->where('tahun_ajaran_id', $tahunAktif->id)
+            ->firstOrFail();
+
+        // Hitung total tabungan
+        $totalTabungan = $bukuTabungan->transaksis()
+            ->where('jenis', 'simpanan')
+            ->sum('jumlah');
+
+        // Hitung biaya admin
+        $biayaAdminPersen = $this->hitungPersentaseAdmin($siswa->category);
+        $biayaAdmin = $totalTabungan * $biayaAdminPersen;
+
+        // Hitung semua potongan
+        $potongan = $this->hitungSemuaPotongan($siswa, $tahunAktif);
+        $totalPotongan = $potongan->sum('jumlah');
+
+        // Hitung sisa tabungan
+        $sisaTabungan = ($totalTabungan - $biayaAdmin) - $totalPotongan;
+
+        $pdf = Pdf::loadView('pembayaran.pdf', compact(
+            'siswa',
+            'tahunAktif',
+            'totalTabungan',
+            'biayaAdminPersen',
+            'biayaAdmin',
+            'potongan',
+            'totalPotongan',
+            'sisaTabungan'
+        ));
+
+        return $request->has('preview') 
+            ? $pdf->stream("pembayaran-{$siswa->nis}.pdf")
+            : $pdf->download("pembayaran-{$siswa->nis}.pdf");
+    }
+
+    private function hitungPersentaseAdmin($kategori)
+    {
+        return match($kategori) {
+            'Anak Guru' => 0.05,
+            'Anak Yatim' => 0.08,
+            'Kakak Beradik' => 0.08,
+            default => 0.08
+        };
+    }
+
+    private function hitungSemuaPotongan(Siswa $siswa, TahunAjaran $tahun)
+    {
+        $potongan = collect();
+        
+        // Hitung SPP
+        $this->hitungPotonganSPP($siswa, $tahun, $potongan);
+        
+        // Hitung IKK
+        $this->hitungPotonganIKK($siswa, $tahun, $potongan);
+        
+        // Hitung biaya lainnya (THB, Uang Pangkal, dll)
+        $this->hitungBiayaLainnya($siswa, $tahun, $potongan);
+
+        return $potongan;
+    }
+
+    private function hitungPotonganSPP($siswa, $tahun, &$potongan)
+    {
+        $spp = BiayaSekolah::where('jenis_biaya', 'SPP')
+            ->where('tahun_ajaran_id', $tahun->id)
+            ->where('kategori_siswa', $siswa->category)
+            ->first();
+
+        if ($spp) {
+            $bulanTerbayar = $siswa->pembayarans()
+                ->where('jenis_biaya', 'SPP')
+                ->where('tahun_ajaran_id', $tahun->id)
+                ->count();
+
+            $sppPerBulan = $spp->jumlah;
+            $bulanBelumBayar = 12 - $bulanTerbayar;
+            
+            if ($bulanBelumBayar > 0) {
+                $potongan->push([
+                    'jenis' => 'SPP ('.$bulanBelumBayar.' Bulan)',
+                    'jumlah' => $bulanBelumBayar * $sppPerBulan
+                ]);
+            }
+        }
+    }
+
+    private function hitungPotonganIKK($siswa, $tahun, &$potongan)
+    {
+        $ikk = BiayaSekolah::where('jenis_biaya', 'IKK')
+            ->where('tahun_ajaran_id', $tahun->id)
+            ->where('kategori_siswa', $siswa->category)
+            ->first();
+
+        if ($ikk) {
+            $sudahBayar = $siswa->pembayarans()
+                ->where('jenis_biaya', 'IKK')
+                ->where('tahun_ajaran_id', $tahun->id)
+                ->exists();
+
+            if (!$sudahBayar) {
+                $potongan->push([
+                    'jenis' => 'IKK',
+                    'jumlah' => $ikk->jumlah
+                ]);
+            }
+        }
+    }
+
+    private function hitungBiayaLainnya($siswa, $tahun, &$potongan)
+    {
+        $biayaLain = BiayaSekolah::where('tahun_ajaran_id', $tahun->id)
+            ->whereIn('jenis_biaya', [
+                'THB', 
+                'Uang Pangkal', 
+                'Raport', 
+                'Wisuda', 
+                'Foto'
+            ])
+            ->get();
+
+        foreach ($biayaLain as $biaya) {
+            $sudahBayar = $siswa->pembayarans()
+                ->where('jenis_biaya', $biaya->jenis_biaya)
+                ->where('tahun_ajaran_id', $tahun->id)
+                ->exists();
+
+            if (!$sudahBayar) {
+                $jumlah = $this->hitungDiskonKategori(
+                    $biaya->jumlah, 
+                    $siswa->category, 
+                    $biaya->jenis_biaya
+                );
+
+                $potongan->push([
+                    'jenis' => $biaya->jenis_biaya,
+                    'jumlah' => $jumlah
+                ]);
+            }
+        }
+    }
+
+    private function hitungDiskonKategori($jumlah, $kategori, $jenisBiaya)
+    {
+        if ($kategori === 'Kakak Beradik' && in_array($jenisBiaya, ['SPP', 'IKK'])) {
+            return $jumlah * 0.8;
+        }
+        
+        return $jumlah;
     }
 }

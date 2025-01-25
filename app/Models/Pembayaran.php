@@ -74,6 +74,8 @@ class Pembayaran extends Model
         return $this->belongsTo(TahunAjaran::class);
     }
 
+    
+
     /**
      * Relasi ke model Transaksi untuk cicilan.
      */
@@ -183,4 +185,7 @@ class Pembayaran extends Model
             'keterangan' => 'nullable|string|max:255'
         ];
     }
+
+
+    
 }
