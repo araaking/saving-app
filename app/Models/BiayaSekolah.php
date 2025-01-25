@@ -24,4 +24,11 @@ class BiayaSekolah extends Model
     {
         return $this->belongsTo(TahunAjaran::class);
     }
+
+    public static function getBiaya($jenisBiaya, $kategoriSiswa)
+{
+    return self::where('jenis_biaya', $jenisBiaya)
+        ->where('kategori_siswa', $kategoriSiswa)
+        ->value('jumlah') ?? 0;
+}
 }

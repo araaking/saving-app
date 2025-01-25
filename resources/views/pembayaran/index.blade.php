@@ -29,6 +29,7 @@
                                     <th>Keterangan</th>
                                     <th>Status</th>
                                     <th>Aksi</th>
+                                    <th>exportPDF</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -64,6 +65,12 @@
                                             </button>
                                         </form>
                                     </td>
+                                    <td>
+                                        <a href="{{ route('pembayaran.export-pdf', $pembayaran->id) }}" 
+                                           class="btn btn-icon btn-sm bg-primary-subtle me-1" 
+                                           data-bs-toggle="tooltip" title="Export PDF">
+                                            <i class="mdi mdi-file-pdf fs-14 text-primary"></i>
+                                        </a>
                                 </tr>
                                 @empty
                                 <tr>

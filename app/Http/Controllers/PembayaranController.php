@@ -12,10 +12,20 @@ use App\Models\Transaksi;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Carbon\Carbon;
 
 class PembayaranController extends Controller
 {
-    // Tampilkan semua pembayaran
+    public function show($id)
+    {
+        $pembayaran = Pembayaran::find($id);
+        if (!$pembayaran) {
+            return redirect()->route('pembayaran.index')->with('error', 'Pembayaran not found.');
+        }
+        return view('pembayaran.show', compact('pembayaran'));
+    }
+
     public function index()
     {
         $pembayarans = Pembayaran::with(['siswa', 'tahunAjaran'])
@@ -25,7 +35,6 @@ class PembayaranController extends Controller
         return view('pembayaran.index', compact('pembayarans'));
     }
 
-    // Form pembayaran
     public function create(Request $request)
     {
         $tahunAktif = TahunAjaran::where('is_active', true)->firstOrFail();
@@ -48,28 +57,9 @@ class PembayaranController extends Controller
         ));
     }
 
-    // Simpan pembayaran
     public function store(Request $request)
     {
-        $request->validate([
-            'siswa_id' => 'required|exists:siswa,id',
-            'jenis_biaya' => [
-                'required',
-                Rule::in(['SPP', 'IKK', 'THB', 'Uang Pangkal', 'Raport', 'Wisuda', 'Foto', 'Seragam'])
-            ],
-            'bulan_hijri' => [
-                Rule::requiredIf($request->jenis_biaya === 'SPP'),
-                'nullable',
-                Rule::in([
-                    'Muharram', 'Safar', 'Rabiul Awwal', 'Rabiul Akhir',
-                    'Jumadil Awwal', 'Jumadil Akhir', 'Rajab', 'Sya\'ban',
-                    'Ramadan', 'Syawwal', 'Dzulqaidah', 'Dzulhijjah'
-                ])
-            ],
-            'jumlah' => 'required|numeric|min:0',
-            'metode_pembayaran' => 'required|in:cash,cicilan,tabungan',
-            'keterangan' => 'nullable|string|max:255'
-        ]);
+        $request->validate(Pembayaran::validationRules($request->jenis_biaya));
 
         DB::beginTransaction();
 
@@ -77,39 +67,19 @@ class PembayaranController extends Controller
             $siswa = Siswa::findOrFail($request->siswa_id);
             $this->validateStudentCategory($siswa, $request->jenis_biaya);
 
-            // Cek biaya sekolah sesuai kategori siswa
             $biayaSekolah = BiayaSekolah::where('tahun_ajaran_id', $siswa->academic_year_id)
                 ->where('jenis_biaya', $request->jenis_biaya)
                 ->where('kategori_siswa', $siswa->category)
                 ->first();
 
             if ($biayaSekolah) {
-                $maxJumlah = $biayaSekolah->jumlah;
+                $maxJumlah = $this->applyDiscount($biayaSekolah->jumlah, $siswa->category, $request->jenis_biaya);
                 
-                // Validasi jumlah untuk kategori khusus
-                if ($siswa->category === 'Kakak Beradik' && in_array($request->jenis_biaya, ['SPP', 'IKK'])) {
-                    $maxJumlah *= 0.8; // Diskon 20% untuk kakak beradik
-                }
-
                 if ($request->jumlah > $maxJumlah) {
                     return back()->with('error', 'Jumlah melebihi ketentuan untuk kategori siswa ini.');
                 }
             }
 
-            // Validasi duplikat pembayaran
-            $existingPayment = Pembayaran::where('siswa_id', $request->siswa_id)
-                ->where('tahun_ajaran_id', $siswa->academic_year_id)
-                ->where('jenis_biaya', $request->jenis_biaya)
-                ->when($request->jenis_biaya === 'SPP', function ($query) use ($request) {
-                    $query->where('bulan_hijri', $request->bulan_hijri);
-                })
-                ->exists();
-
-            if ($existingPayment) {
-                return back()->with('error', 'Siswa ini sudah melakukan pembayaran untuk jenis biaya dan periode tersebut.');
-            }
-
-            // Simpan pembayaran
             $pembayaran = Pembayaran::create([
                 'siswa_id' => $request->siswa_id,
                 'tahun_ajaran_id' => $siswa->academic_year_id,
@@ -118,18 +88,11 @@ class PembayaranController extends Controller
                 'jumlah' => $request->jumlah,
                 'metode_pembayaran' => $request->metode_pembayaran,
                 'keterangan' => $request->keterangan,
-                'is_processed' => $request->metode_pembayaran === 'cash' // Langsung diproses jika cash
+                'is_processed' => $request->metode_pembayaran === 'cash'
             ]);
 
-            // Proses berdasarkan metode pembayaran
-            switch ($request->metode_pembayaran) {
-                case 'cicilan':
-                    $this->createCicilanTransaction($pembayaran);
-                    break;
-                    
-                case 'tabungan':
-                    // Akan diproses saat eksekusi akhir periode
-                    break;
+            if ($request->metode_pembayaran === 'cicilan') {
+                $this->createCicilanTransaction($pembayaran);
             }
 
             DB::commit();
@@ -143,7 +106,53 @@ class PembayaranController extends Controller
         }
     }
 
-    // Validasi kategori siswa
+    public function exportPDF($siswa_id)
+    {
+        $siswa = Siswa::with(['kelas', 'bukuTabungans.transaksis', 'pembayarans'])
+            ->findOrFail($siswa_id);
+
+        $tahunAktif = TahunAjaran::where('is_active', true)->first();
+        
+        // Hitung total tabungan
+        $totalTabungan = $siswa->bukuTabungans->sum(function($buku) {
+            return $buku->transaksis->where('jenis', 'simpanan')->sum('jumlah');
+        });
+
+        // Hitung komponen
+        $adminFeePercentage = $this->hitungAdminFee($siswa->category, false);
+        $adminFee = $totalTabungan * ($adminFeePercentage / 100);
+        
+        $potongan = [
+            'IKK' => BiayaSekolah::getBiaya('IKK', $siswa->category),
+            'SPP' => BiayaSekolah::getBiaya('SPP', $siswa->category) * $this->hitungBulanTertunggak($siswa),
+            'Uang_Pangkal' => BiayaSekolah::getBiaya('Uang Pangkal', $siswa->category),
+            'THB' => BiayaSekolah::getBiaya('THB', $siswa->category),
+            'Foto' => BiayaSekolah::getBiaya('Foto', $siswa->category),
+            'Raport' => BiayaSekolah::getBiaya('Raport', $siswa->category),
+            'UAM' => BiayaSekolah::getBiaya('UAM', $siswa->category),
+            'Tunggakan' => $this->hitungTunggakanTahunLalu($siswa),
+            'Pinjaman' => $this->hitungPinjaman($siswa)
+        ];
+
+        $totalPotongan = array_sum($potongan);
+        $sisaTabungan = ($totalTabungan - $adminFee) - $totalPotongan;
+
+        $pdf = Pdf::loadView('pembayaran.export-pdf', [
+            'siswa' => $siswa,
+            'tahunAktif' => $tahunAktif,
+            'totalTabungan' => $totalTabungan,
+            'adminFee' => $adminFee,
+            'adminFeePercentage' => $adminFeePercentage,
+            'potongan' => $potongan,
+            'totalPotongan' => $totalPotongan,
+            'sisaTabungan' => $sisaTabungan
+        ]);
+
+        return $pdf->download("Laporan-Keuangan-{$siswa->name}.pdf");
+    }
+
+    // ============ HELPER METHODS ============
+    
     private function validateStudentCategory(Siswa $siswa, $jenisBiaya)
     {
         $invalidCases = [
@@ -157,7 +166,53 @@ class PembayaranController extends Controller
         }
     }
 
-    // Buat transaksi cicilan
+    private function applyDiscount($jumlah, $category, $jenisBiaya)
+    {
+        if ($category === 'Kakak Beradik' && in_array($jenisBiaya, ['SPP', 'IKK'])) {
+            return $jumlah * 0.8; // Diskon 20%
+        }
+        return $jumlah;
+    }
+
+    private function hitungAdminFee($category, $isPenarikanAwal = false)
+    {
+        if ($category === 'Anak Guru') return 5;
+        
+        return match($isPenarikanAwal) {
+            true => 10,
+            false => 8
+        };
+    }
+
+    private function hitungBulanTertunggak($siswa)
+    {
+        $startYear = Carbon::parse($siswa->academicYear->year_start);
+        $endYear = Carbon::parse($siswa->academicYear->year_end);
+        $totalBulan = $startYear->diffInMonths($endYear);
+        
+        $sudahBayar = $siswa->pembayarans()
+            ->where('jenis_biaya', 'SPP')
+            ->count();
+
+        return max($totalBulan - $sudahBayar, 0);
+    }
+
+    private function hitungTunggakanTahunLalu($siswa)
+    {
+        return Pembayaran::where('siswa_id', $siswa->id)
+            ->where('tahun_ajaran_id', '<>', $siswa->academic_year_id)
+            ->where('is_processed', false)
+            ->sum('jumlah');
+    }
+
+    private function hitungPinjaman($siswa)
+    {
+        return Transaksi::whereHas('bukuTabungan', function($q) use ($siswa) {
+            $q->where('siswa_id', $siswa->id)
+              ->where('jenis', 'pinjaman');
+        })->sum('jumlah');
+    }
+
     private function createCicilanTransaction(Pembayaran $pembayaran)
     {
         $bukuTabungan = $pembayaran->siswa->bukuTabungans()
@@ -169,18 +224,7 @@ class PembayaranController extends Controller
             'jenis' => 'cicilan',
             'jumlah' => $pembayaran->jumlah,
             'tanggal' => now(),
-            'keterangan' => "Pembayaran {$pembayaran->jenis_biaya} - {$pembayaran->keterangan}"
+            'keterangan' => "Cicilan {$pembayaran->jenis_biaya} - {$pembayaran->keterangan}"
         ]);
-    }
-
-    // Hitung diskon berdasarkan kategori siswa
-    private function calculateStudentDiscount($category)
-    {
-        return match ($category) {
-            'Anak Guru' => 0.05,
-            'Anak Yatim' => 0.08,
-            'Kakak Beradik' => 0.10,
-            default => 0.08,
-        };
     }
 }

@@ -63,6 +63,8 @@ Route::middleware('auth')->group(function () {
     
     Route::resource('pembayaran', PembayaranController::class);
     
+    Route::get('/pembayaran/export-pdf/{siswa_id}', [PembayaranController::class, 'exportPDF'])
+    ->name('pembayaran.export-pdf');
 });
 
 require __DIR__.'/auth.php';

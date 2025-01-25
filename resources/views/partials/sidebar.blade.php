@@ -87,6 +87,15 @@
                         <span>Biaya Sekolah</span>
                     </a>
                 </li>
+
+                <!-- Menu Keuangan -->
+                <li class="menu-title">Pembayaran</li>
+                <li>
+                    <a href="{{ route('pembayaran.index') }}" class="tp-link">
+                        <i data-feather="dollar-sign"></i>
+                        <span>Pembayaran Siswa</span>
+                    </a>
+                </li>
                 
             </ul>
             
