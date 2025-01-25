@@ -8,6 +8,7 @@ use App\Http\Controllers\BukuTabunganController;
 use App\Http\Controllers\TransaksiController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\BiayaSekolahController;
+use App\Http\Controllers\PembayaranController;
 use Illuminate\Support\Facades\Route;
 
 // Route utama
@@ -60,6 +61,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/get-buku-tabungan-by-kelas/{kelasId}', [TransaksiController::class, 'getBukuTabunganByKelas'])
         ->name('get-buku-tabungan-by-kelas');
     
+    Route::resource('pembayaran', PembayaranController::class);
     
 });
 
