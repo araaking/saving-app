@@ -98,7 +98,7 @@
                 </li>
 
                 <li>
-                    <a href="{{ route('siswa.index') }}" class="tp-link">
+                    <a href="{{ route('pembayaran.export.index') }}" class="tp-link">
                         <i data-feather="dollar-sign"></i>
                         <span>Export Data</span>
                     </a>
