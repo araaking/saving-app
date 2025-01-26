@@ -10,12 +10,12 @@ return new class extends Migration
     {
         Schema::create('kelas', function (Blueprint $table) {
             $table->id();
-            $table->string('name'); // Contoh: "A", "B" (huruf kelas)
-            $table->integer('tingkat'); // Numerik (1, 2, 3, ...)
+            $table->string('name');
+            $table->integer('tingkat')->unsigned(); // Make it unsigned to allow 0
             $table->foreignId('next_class_id')
                 ->nullable()
                 ->constrained('kelas')
-                ->onDelete('set null'); // Relasi ke kelas berikutnya
+                ->onDelete('set null');
             $table->timestamps();
 
             // Kombinasi name + tingkat harus unik

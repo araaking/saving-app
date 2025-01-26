@@ -11,14 +11,20 @@ use Illuminate\Http\Request;
 class TransaksiController extends Controller
 {
     // Menampilkan daftar semua transaksi
-    public function index()
-    {
-        $transaksis = Transaksi::with(['bukuTabungan.siswa.kelas'])
-            ->orderBy('tanggal', 'desc')
-            ->paginate(10);
-
-        return view('transaksi.index', compact('transaksis'));
-    }
+    public function index(Request $request)
+        {
+            $query = Transaksi::with(['bukuTabungan.siswa.kelas']);
+        
+            // Filter by specific transaction type if specified
+            if ($request->has('jenis') && in_array($request->jenis, ['simpanan', 'cicilan', 'penarikan'])) {
+                $query->where('jenis', $request->jenis);
+            }
+            
+            $transaksis = $query->orderBy('tanggal', 'desc')
+                ->paginate(10);
+        
+            return view('transaksi.index', compact('transaksis'));
+        }
 
     // Form transaksi simpanan & cicilan
     public function create(Request $request)

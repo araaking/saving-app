@@ -11,17 +11,29 @@
                 </div>
             <div class="card overflow-hidden">
                 <div class="card-header">
-                <div class="d-flex align-items-center">
-    <h5 class="card-title mb-0">Daftar Transaksi</h5>
-    <div class="ms-auto">
-        <a href="{{ route('transaksi.create') }}" class="btn btn-sm btn-primary me-2">
-            <i class="mdi mdi-plus me-1"></i> Tambah Transaksi
-        </a>
-        <a href="{{ route('transaksi.penarikan.create') }}" class="btn btn-sm btn-danger">
-            <i class="mdi mdi-cash-remove me-1"></i> Tambah Penarikan
-        </a>
-    </div>
-</div>
+                    <div class="d-flex align-items-center">
+                        <h5 class="card-title mb-0">Daftar Transaksi</h5>
+                        <div class="ms-auto">
+                            <a href="{{ request()->fullUrlWithQuery(['jenis' => 'simpanan']) }}" 
+                               class="btn btn-sm btn-success me-2 {{ request()->input('jenis') === 'simpanan' ? 'active' : '' }}">
+                                <i class="mdi mdi-cash me-1"></i> Simpanan
+                            </a>
+                            <a href="{{ request()->fullUrlWithQuery(['jenis' => 'cicilan']) }}" 
+                               class="btn btn-sm btn-info me-2 {{ request()->input('jenis') === 'cicilan' ? 'active' : '' }}">
+                                <i class="mdi mdi-cash-multiple me-1"></i> Cicilan
+                            </a>
+                            <a href="{{ request()->fullUrlWithQuery(['jenis' => 'penarikan']) }}" 
+                               class="btn btn-sm btn-warning me-2 {{ request()->input('jenis') === 'penarikan' ? 'active' : '' }}">
+                                <i class="mdi mdi-cash-remove me-1"></i> Penarikan
+                            </a>
+                            <a href="{{ route('transaksi.create') }}" class="btn btn-sm btn-primary me-2">
+                                <i class="mdi mdi-plus me-1"></i> Tambah Transaksi
+                            </a>
+                            <a href="{{ route('transaksi.penarikan.create') }}" class="btn btn-sm btn-danger">
+                                <i class="mdi mdi-cash-remove me-1"></i> Tambah Penarikan
+                            </a>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="card-body p-0">
